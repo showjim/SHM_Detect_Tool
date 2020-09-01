@@ -35,7 +35,7 @@ loss = nn.MSELoss()
 optimizer = optim.SGD(net.parameters(), lr=0.03)
 print(optimizer)
 #%% training modle
-num_epochs = 3
+num_epochs = 6
 for epoch in range(1, num_epochs + 1):
     for X, y in data_iter:
         output = net(X)
@@ -43,6 +43,9 @@ for epoch in range(1, num_epochs + 1):
         optimizer.zero_grad() # equal to net.zero_grad()
         l.backward()
         optimizer.step()
+        # # adjust lr
+        # for param_group in optimizer.param_groups:
+        #     param_group['lr'] *= 0.1
     print('epoch %d, loss: %f' % (epoch, l.item()))
 dense = net[0]
 print(true_w, dense.weight)
