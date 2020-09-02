@@ -140,6 +140,8 @@ class CsvDataset(data.Dataset):
             try:
                 tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
                 tmp_x = self.csv_df.get_chunk(11).values
+                tmp_x = self.convert_SHM_data(tmp_x)
+
                 y = np.vstack((y, tmp_y))
                 x = np.vstack((x, tmp_x))
                 self.data_count += 1
@@ -160,3 +162,11 @@ class CsvDataset(data.Dataset):
 
     def __getitem__(self, idx):
         return self.X_train[idx], self.Y_train[idx]
+
+    def convert_SHM_data(self, tmp_np):
+        tmp_np[tmp_np == 'P'] = 1.
+        tmp_np[tmp_np == '.'] = 0.
+        tmp_np[tmp_np == '*'] = 1.
+        tmp_np[tmp_np == '#'] = 0.
+        tmp_np = tmp_np.astype(float)
+        return tmp_np
