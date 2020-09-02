@@ -20,7 +20,7 @@ class CsvDataset(data.Dataset):
         self.data_count = 0
         x = np.zeros([11, 11], dtype=float)
         y = np.zeros([1], dtype=float)
-        self.result_dict = {'Fail': [0.], 'Pass': [1.], 'Vol-Wall': [2.], 'Freq-Wall': [3.]}
+        self.result_dict = {'Fail': [0.], 'Pass': [1.], 'Vol-Wall': [2.], 'Freq-Wall': [3.], 'Marginal': [4.]}
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
         # Read data in chunck
         go = True
@@ -35,7 +35,7 @@ class CsvDataset(data.Dataset):
                 print(type(e))
                 go = False
         # Reshape the data
-        y = y.reshape(-1, 1, 1)
+        y = y.reshape(y.shape[0])
         x = x.reshape(-1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
