@@ -15,7 +15,7 @@ import sys
 sys.path.append("..")
 import d2lzh_pytorch as d2l
 
-__version__ = 'STDF Edit Tool Beta V0.4'
+__version__ = 'SHM Detect Tool Beta V0.1'
 __author__ = 'zhouchao486@gmail.com'
 
 # %% load data
