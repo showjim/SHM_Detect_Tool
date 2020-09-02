@@ -17,14 +17,29 @@ class CsvDataset(data.Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        self.result_dict = {'Fail': [0], 'Pass': [1], 'Vol-Wall': [2], 'Freq-Wall': [3]}
+        self.data_count = 0
+        x = np.zeros([11, 11], dtype=float)
+        y = np.zeros([1], dtype=float)
+        self.result_dict = {'Fail': [0.], 'Pass': [1.], 'Vol-Wall': [2.], 'Freq-Wall': [3.]}
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
+        # Read data in chunck
+        go = True
+        while go:
+            try:
+                tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
+                tmp_x = self.csv_df.get_chunk(11).values
+                y = np.vstack((y, tmp_y))
+                x = np.vstack((x, tmp_x))
+                self.data_count += 1
+            except Exception as e:
+                print(type(e))
+                go = False
+        # Reshape the data
+        y = y.reshape(-1, 1, 1)
+        x = x.reshape(-1, 11, 11)
 
-        y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
-        x = self.csv_df.get_chunk(11).values
-
-        self.X_train = torch.tensor(x, dtype=torch.int)
-        self.Y_train = torch.tensor(y, dtype=torch.int)
+        self.X_train = torch.tensor(x, dtype=torch.float)
+        self.Y_train = torch.tensor(y, dtype=torch.float)
 
     def __len__(self):
         # print len(self.landmarks_frame)
@@ -37,6 +52,6 @@ class CsvDataset(data.Dataset):
 
 filename = r'_new.csv'
 dataset = CsvDataset(filename)
-train_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset, batch_size=dataset.data_count, shuffle=True)
 for data in train_loader:
     print(data)
