@@ -5,7 +5,7 @@ import numpy as np
 import sys
 from collections import OrderedDict
 
-sys.path.append("..")
+sys.path.append("../..")
 import d2lzh_pytorch as d2l
 
 # %% load data

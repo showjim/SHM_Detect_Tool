@@ -110,7 +110,7 @@ def use_svg_display():
 def show_fashion_mnist(images, labels):
     use_svg_display()
 
-    _, figs = plt.subplots(1, len(images), figsize=(12, 12))
+    _, figs = plt.subplots(1, len(images), figsize=(12, 8))
     for f, img, lbl in zip(figs, images, labels):
         f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
         f.set_title(lbl)
