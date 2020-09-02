@@ -32,13 +32,13 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNI
     return train_iter, test_iter
 
 
-def load_custom_shm_data(batch_size, resize=None, root='~/Datasets/FashionMNIST'):
+def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
     """Download the fashion mnist dataset and then load into memory."""
     if sys.platform.startswith('win'):
         num_workers = 0  # 0
     else:
         num_workers = 4
-    root = r'_new.csv'
+
     dataset = CsvDataset(root)
     train_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
@@ -109,8 +109,9 @@ def use_svg_display():
 
 def show_fashion_mnist(images, labels):
     use_svg_display()
-
-    _, figs = plt.subplots(1, len(images), figsize=(12, 8))
+    i = 0
+    _, figs = plt.subplots(2, int(len(images)/2), figsize=(12, 8))
+    figs = figs.flatten()
     for f, img, lbl in zip(figs, images, labels):
         f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
         f.set_title(lbl)
