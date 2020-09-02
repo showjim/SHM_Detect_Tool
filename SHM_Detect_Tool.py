@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-
+###################################################
+# SHM Detect Tool                                 #
+# Version: Beta 0.1                               #
+#                                                 #
+# Sep. 02, 2020                                   #
+# A Tool to Detect the Result of SHM              #
+###################################################
 import torch
 from torch import nn
 from torch.nn import init
@@ -8,6 +14,9 @@ import sys
 
 sys.path.append("..")
 import d2lzh_pytorch as d2l
+
+__version__ = 'STDF Edit Tool Beta V0.4'
+__author__ = 'zhouchao486@gmail.com'
 
 # %% load data
 batch_size = 12  # 256

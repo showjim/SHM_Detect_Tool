@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import torch
 from torch import nn
@@ -5,7 +6,6 @@ import torchvision
 from IPython import display
 import matplotlib.pyplot as plt
 
-import csv
 import pandas as pd
 import numpy as np
 import torch.utils.data as data
@@ -14,7 +14,7 @@ import torch.utils.data as data
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNIST'):
     """Download the fashion mnist dataset and then load into memory."""
     if sys.platform.startswith('win'):
-        num_workers = 0  # 0􁤒􁐏􀓧􁊠􁷐􀥘􁌱􁬰􁑕􀹶􀛒􁭛􁧛􀝐􀷄􀴝
+        num_workers = 0  # 0
     else:
         num_workers = 4
     trans = []
@@ -31,10 +31,11 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNI
 
     return train_iter, test_iter
 
+
 def load_custom_shm_data(batch_size, resize=None, root='~/Datasets/FashionMNIST'):
     """Download the fashion mnist dataset and then load into memory."""
     if sys.platform.startswith('win'):
-        num_workers = 0  # 0􁤒􁐏􀓧􁊠􁷐􀥘􁌱􁬰􁑕􀹶􀛒􁭛􁧛􀝐􀷄􀴝
+        num_workers = 0  # 0
     else:
         num_workers = 4
     root = r'_new.csv'
@@ -61,7 +62,7 @@ def evaluate_accuracy(data_iter, net):
     return acc_sum / n
 
 
-def sgd(params, lr, batch_size):  # 􀹜􀚍􀷄􀫪􀗛􀨂􀣁d2lzh_pytorch􀛱􀓾􀷜􀗎
+def sgd(params, lr, batch_size):  # d2lzh_pytorch
     for param in params:
         param.data -= lr * param.grad / batch_size
 
@@ -82,32 +83,36 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
             if optimizer is None:
                 sgd(params, lr, batch_size)
             else:
-                optimizer.step()  # “softmax􀢧􀭭􁌱􁓌􁁄􀨫􁈿”􀓞􁜓􀩙􁊠􀚩
+                optimizer.step()  # “softmax
             train_l_sum += l.item()
             train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
             n += y.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
         print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f' % (
-        epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
+            epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
+
 
 def get_fashion_mnist_labels(labels):
     text_labels = ['t-shirt', 'trouser', 'pullover', 'dress',
                    'coat', 'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
     return [text_labels[int(i)] for i in labels]
 
+
 def get_custom_shm_labels(labels):
     text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal']
     return [text_labels[int(i)] for i in labels]
 
+
 def use_svg_display():
     display.set_matplotlib_formats('svg')
+
 
 def show_fashion_mnist(images, labels):
     use_svg_display()
 
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
     for f, img, lbl in zip(figs, images, labels):
-        f.imshow(img.view((11, 11)).numpy(),cmap='RdYlGn')
+        f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
         f.set_title(lbl)
         f.axes.get_xaxis().set_visible(False)
         f.axes.get_yaxis().set_visible(False)
