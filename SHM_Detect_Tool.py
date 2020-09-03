@@ -38,11 +38,12 @@ for params in net.parameters():
 loss = torch.nn.CrossEntropyLoss()
 
 # %% optimise function
-optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+lr = 0.1
+optimizer = torch.optim.SGD(net.parameters(), lr=lr)
 
 # %% run training
-num_epochs = 300
-d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)
+num_epochs = 320
+d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
 # %% show result
 X, y = iter(test_iter).next()

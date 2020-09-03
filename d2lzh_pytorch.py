@@ -71,7 +71,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
     plt.ion()
     fig = plt.figure()
     for epoch in range(num_epochs):
-        adjust_learning_rate(optimizer, epoch)
+        adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
@@ -102,9 +102,9 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
     plt.grid()
 
 
-def adjust_learning_rate(optimizer, epoch):
+def adjust_learning_rate(optimizer, epoch, lr):
     """Reduce learning rate by half every 60 epoch"""
-    factor = 0.1 * 0.5 ** (epoch // 60)
+    factor = lr * 0.5 ** (epoch // 60)
     for param_group in optimizer.param_groups:
         param_group['lr'] = factor
         print('Learning rate: ', param_group['lr'])
