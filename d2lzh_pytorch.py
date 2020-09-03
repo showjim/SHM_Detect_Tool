@@ -76,7 +76,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
         for X, y in train_iter:
             y_hat = net(X)
             l = loss(y_hat, y).sum()
-            # 􀼀􀬶􁂴􁵭
+            # Reset the grad
             if optimizer is not None:
                 optimizer.zero_grad()
             elif params is not None and params[0].grad is not None:
@@ -86,7 +86,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
             if optimizer is None:
                 sgd(params, lr, batch_size)
             else:
-                optimizer.step()  # “softmax
+                optimizer.step()  # Set the parameters
             train_l_sum += l.item()
             train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
             n += y.shape[0]
@@ -117,7 +117,7 @@ def get_fashion_mnist_labels(labels):
 
 
 def get_custom_shm_labels(labels):
-    text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal']
+    text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal', '']
     return [text_labels[int(i)] for i in labels]
 
 
