@@ -7,11 +7,11 @@ sys.path.append("../..")
 import d2lzh_pytorch as d2l
 
 # %% load data
-batch_size = 12 #256
-train_iter, test_iter = d2l.load_custom_shm_data(batch_size) #d2l.load_data_fashion_mnist(batch_size)
+batch_size = 256
+train_iter, test_iter = d2l.load_data_fashion_mnist(batch_size)
 
 # %% define&initial module
-num_inputs, num_outputs, num_hiddens = 121, 2, 64#784, 10, 256
+num_inputs, num_outputs, num_hiddens = 784, 10, 256
 net = nn.Sequential(
     d2l.FlattenLayer(),
     nn.Linear(num_inputs, num_hiddens),

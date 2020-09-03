@@ -68,7 +68,10 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 
 
 def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
+    plt.ion()
+    fig = plt.figure()
     for epoch in range(num_epochs):
+        adjust_learning_rate(optimizer, epoch)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
@@ -88,8 +91,23 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
             train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
             n += y.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
+        #plt.clf()
+        plt.plot(epoch, test_acc, '.r')
+        plt.grid()
+        # plt.plot(epoch, train_l_sum / n, 'xb')
+        plt.pause(0.0001)
         print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f' % (
             epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
+    plt.ioff()
+    plt.grid()
+
+
+def adjust_learning_rate(optimizer, epoch):
+    """Reduce learning rate by half every 60 epoch"""
+    factor = 0.1 * 0.5 ** (epoch // 60)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = factor
+        print('Learning rate: ', param_group['lr'])
 
 
 def get_fashion_mnist_labels(labels):
@@ -108,9 +126,9 @@ def use_svg_display():
 
 
 def show_fashion_mnist(images, labels):
-    use_svg_display()
+    # use_svg_display()
     i = 0
-    _, figs = plt.subplots(2, int(len(images)/2), figsize=(12, 8))
+    _, figs = plt.subplots(4, int(len(images) / 4), figsize=(12, 8))
     figs = figs.flatten()
     for f, img, lbl in zip(figs, images, labels):
         f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
@@ -149,6 +167,7 @@ class CsvDataset(data.Dataset):
             except Exception as e:
                 print(type(e))
                 go = False
+        print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
         y = y.reshape(y.shape[0])
         x = x.reshape(-1, 11, 11)

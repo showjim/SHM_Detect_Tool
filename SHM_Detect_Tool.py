@@ -19,7 +19,7 @@ __version__ = 'SHM Detect Tool Beta V0.1'
 __author__ = 'zhouchao486@gmail.com'
 
 # %% load data
-batch_size = 24  # 256
+batch_size = 81  # 256
 filename = r'custom_SHM_data.csv'
 train_iter, test_iter = d2l.load_custom_shm_data(batch_size, filename)  # d2l.load_data_fashion_mnist(batch_size)
 
@@ -38,10 +38,10 @@ for params in net.parameters():
 loss = torch.nn.CrossEntropyLoss()
 
 # %% optimise function
-optimizer = torch.optim.SGD(net.parameters(), lr=0.05)
+optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
 
 # %% run training
-num_epochs = 60
+num_epochs = 300
 d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)
 
 # %% show result
@@ -50,4 +50,4 @@ true_labels = d2l.get_custom_shm_labels(y.numpy())  # d2l.get_fashion_mnist_labe
 pred_labels = d2l.get_custom_shm_labels(
     net(X).argmax(dim=1).numpy())  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
 titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-d2l.show_fashion_mnist(X[0:18], titles[0:18])
+d2l.show_fashion_mnist(X[0:36], titles[0:36])
