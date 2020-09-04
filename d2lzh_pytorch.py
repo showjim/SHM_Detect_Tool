@@ -104,7 +104,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
 
 def adjust_learning_rate(optimizer, epoch, lr):
     """Reduce learning rate by half every 60 epoch"""
-    factor = lr * 0.5 ** (epoch // 60)
+    factor = lr * 1 ** (epoch // 160)
     for param_group in optimizer.param_groups:
         param_group['lr'] = factor
         print('Learning rate: ', param_group['lr'])
@@ -185,8 +185,30 @@ class CsvDataset(data.Dataset):
 
     def convert_SHM_data(self, tmp_np):
         tmp_np[tmp_np == 'P'] = 1.
+        tmp_np[tmp_np == 'p'] = 1.
         tmp_np[tmp_np == '.'] = 0.
         tmp_np[tmp_np == '*'] = 1.
         tmp_np[tmp_np == '#'] = 0.
         tmp_np = tmp_np.astype(float)
         return tmp_np
+
+
+def corr2d(X, K): #
+    h, w = K.shape
+    Y = torch.zeros((X.shape[0] - h + 1, X.shape[1] - w + 1))
+    for i in range(Y.shape[0]):
+        for j in range(Y.shape[1]):
+            Y[i, j] = (X[i: i + h, j: j + w] * K).sum()
+    return Y
+
+def pool2d(X, pool_size, mode='max'):
+    X = X.float()
+    p_h, p_w = pool_size
+    Y = torch.zeros(X.shape[0] - p_h + 1, X.shape[1] - p_w + 1)
+    for i in range(Y.shape[0]):
+        for j in range(Y.shape[1]):
+            if mode == 'max':
+                Y[i, j] = X[i: i + p_h, j: j + p_w].max()
+            elif mode == 'avg':
+                Y[i, j] = X[i: i + p_h, j: j + p_w].mean()
+    return Y

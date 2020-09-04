@@ -19,7 +19,7 @@ __version__ = 'SHM Detect Tool Beta V0.1'
 __author__ = 'zhouchao486@gmail.com'
 
 # %% load data
-batch_size = 81  # 256
+batch_size = 80  # 256
 filename = r'custom_SHM_data.csv'
 train_iter, test_iter = d2l.load_custom_shm_data(batch_size, filename)  # d2l.load_data_fashion_mnist(batch_size)
 
@@ -38,8 +38,9 @@ for params in net.parameters():
 loss = torch.nn.CrossEntropyLoss()
 
 # %% optimise function
-lr = 0.1
-optimizer = torch.optim.SGD(net.parameters(), lr=lr)
+lr = 0.001
+# optimizer = torch.optim.SGD(net.parameters(), lr=lr)
+optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
 # %% run training
 num_epochs = 320
