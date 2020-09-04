@@ -91,7 +91,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
             train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
             n += y.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
-        #plt.clf()
+        # plt.clf()
         plt.plot(epoch, test_acc, '.r')
         plt.grid()
         # plt.plot(epoch, train_l_sum / n, 'xb')
@@ -193,13 +193,14 @@ class CsvDataset(data.Dataset):
         return tmp_np
 
 
-def corr2d(X, K): #
+def corr2d(X, K):  #
     h, w = K.shape
     Y = torch.zeros((X.shape[0] - h + 1, X.shape[1] - w + 1))
     for i in range(Y.shape[0]):
         for j in range(Y.shape[1]):
             Y[i, j] = (X[i: i + h, j: j + w] * K).sum()
     return Y
+
 
 def pool2d(X, pool_size, mode='max'):
     X = X.float()
@@ -212,3 +213,13 @@ def pool2d(X, pool_size, mode='max'):
             elif mode == 'avg':
                 Y[i, j] = X[i: i + p_h, j: j + p_w].mean()
     return Y
+
+
+class Conv2D(nn.Module):
+    def __init__(self, kernel_size):
+        super(Conv2D, self).__init__()
+        self.weight = nn.Parameter(torch.randn(kernel_size))
+        self.bias = nn.Parameter(torch.randn(1))
+
+    def forward(self, x):
+        return corr2d(x, self.weight) + self.bias
