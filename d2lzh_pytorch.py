@@ -70,6 +70,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
+    plt.axis([0, 350, 0.5, 1])
     for epoch in range(num_epochs):
         adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
@@ -104,7 +105,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
 
 def adjust_learning_rate(optimizer, epoch, lr):
     """Reduce learning rate by half every 60 epoch"""
-    factor = lr * 1 ** (epoch // 160)
+    factor = lr * 0.9 ** (epoch // 60)
     for param_group in optimizer.param_groups:
         param_group['lr'] = factor
         print('Learning rate: ', param_group['lr'])
