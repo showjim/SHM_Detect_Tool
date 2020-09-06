@@ -24,15 +24,17 @@ filename = r'custom_SHM_data.csv'
 train_iter, test_iter = d2l.load_custom_shm_data(batch_size, filename)  # d2l.load_data_fashion_mnist(batch_size)
 
 # %% define&initial module
-num_inputs, num_outputs, num_hiddens = 121, 2, 64  # 784, 10, 256
-net = nn.Sequential(
-    d2l.FlattenLayer(),
-    nn.Linear(num_inputs, num_hiddens),
-    nn.ReLU(),
-    nn.Linear(num_hiddens, num_outputs),
-)
-for params in net.parameters():
-    init.normal_(params, mean=0, std=0.01)
+# num_inputs, num_outputs, num_hiddens = 121, 2, 64  # 784, 10, 256
+# net = nn.Sequential(
+#     d2l.FlattenLayer(),
+#     nn.Linear(num_inputs, num_hiddens),
+#     nn.ReLU(),
+#     nn.Linear(num_hiddens, num_outputs),
+# )
+# for params in net.parameters():
+#     init.normal_(params, mean=0, std=0.01)
+
+net = d2l.LeNet()
 
 # %% define loss function
 loss = torch.nn.CrossEntropyLoss()
@@ -43,7 +45,7 @@ lr = 0.001
 optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
 # %% run training
-num_epochs = 320
+num_epochs = 5 #320
 d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
 # %% show result
