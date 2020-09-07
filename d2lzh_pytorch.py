@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import torch.utils.data as data
+import torch.nn.functional as F
 
 
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNIST'):
@@ -235,10 +236,10 @@ class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 6, 3, padding=(1,1)),  # in_channels, out_channels, kernel_size, padding
+            nn.Conv2d(1, 6, 3, padding=(1, 1)),  # in_channels, out_channels, kernel_size, padding
             nn.ReLU(),
             # nn.MaxPool2d(2, 2),  # kernel_size, stride
-            nn.Conv2d(6, 16, 3, padding=(1,1)),
+            nn.Conv2d(6, 16, 3, padding=(1, 1)),
             nn.ReLU(),
             # nn.MaxPool2d(2, 2)
         )
@@ -254,3 +255,38 @@ class LeNet(nn.Module):
         feature = self.conv(img)
         output = self.fc(feature.view(img.shape[0], -1))
         return output
+
+
+def nin_block(in_channels, out_channels, kernel_size, stride, padding):
+    blk = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
+                        nn.ReLU(),
+                        nn.Conv2d(out_channels, out_channels, kernel_size=1),
+                        nn.ReLU(),
+                        nn.Conv2d(out_channels, out_channels, kernel_size=1),
+                        nn.ReLU()
+                        )
+    return blk
+
+
+class Inception(nn.Module):
+    # c1 - c4 are the channel number of each line
+    def __init__(self, in_c, c1, c2, c3, c4):
+        super(Inception, self).__init__()
+        # line 1: 1 x 1 conv
+        self.p1_1 = nn.Conv2d(in_c, c1, kernel_size=1)
+        # line 2: 1 x 1 conv then 3 x 3 conv
+        self.p2_1 = nn.Conv2d(in_c, c2[0], kernel_size=1)
+        self.p2_2 = nn.Conv2d(c2[0], c2[1], kernel_size=3, padding=1)
+        # line3: 1 x 1 conv then 5 x 5 conv
+        self.p3_1 = nn.Conv2d(in_c, c3[0], kernel_size=1)
+        self.p3_2 = nn.Conv2d(c3[0], c3[1], kernel_size=5, padding=2)
+        # line 4: 3 x 3 pool then 1 x 1 conv
+        self.p4_1 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+        self.p4_2 = nn.Conv2d(in_c, c4, kernel_size=1)
+
+    def forward(self, x):
+        p1 = F.relu(self.p1_1(x))
+        p2 = F.relu(self.p2_2(F.relu(self.p2_1(x))))
+        p3 = F.relu(self.p3_2(F.relu(self.p3_1(x))))
+        p4 = F.relu(self.p4_2(self.p4_1(x)))
+        return torch.cat((p1, p2, p3, p4), dim=1)  # Concatenates the given sequence of seq tensors
