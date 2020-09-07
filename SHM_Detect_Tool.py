@@ -45,7 +45,7 @@ lr = 0.001
 optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
 # %% run training
-num_epochs = 5 #320
+num_epochs = 80 #320
 d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
 # %% show result

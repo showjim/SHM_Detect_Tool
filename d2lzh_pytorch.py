@@ -72,7 +72,8 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 350, 0.5, 1])
+    plt.axis([0, 150, 0.5, 1])
+    plt.grid()
     for epoch in range(num_epochs):
         adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
@@ -96,18 +97,19 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
         test_acc = evaluate_accuracy(test_iter, net)
         # plt.clf()
         plt.plot(epoch, test_acc, '.r')
-        plt.grid()
+        # plt.grid()
         # plt.plot(epoch, train_l_sum / n, 'xb')
         plt.pause(0.0001)
         print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f' % (
             epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
+    plt.grid()
     plt.ioff()
     plt.grid()
 
 
 def adjust_learning_rate(optimizer, epoch, lr):
-    """Reduce learning rate by half every 60 epoch"""
-    factor = lr * 0.9 ** (epoch // 60)
+    """Reduce learning rate by half every 50 epoch"""
+    factor = lr * 0.7 ** (epoch // 60)
     for param_group in optimizer.param_groups:
         param_group['lr'] = factor
         print('Learning rate: ', param_group['lr'])
@@ -152,7 +154,7 @@ class CsvDataset(data.Dataset):
                 on a sample.
         """
         self.data_count = 0
-        x = np.zeros([11, 11], dtype=float)
+        x = np.zeros([1, 11, 11], dtype=float)
         y = np.zeros([1], dtype=float)
         self.result_dict = {'Fail': [0], 'Pass': [1], 'Vol-Wall': [2], 'Freq-Wall': [3], 'Marginal': [4]}
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
@@ -163,6 +165,7 @@ class CsvDataset(data.Dataset):
                 tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
                 tmp_x = self.csv_df.get_chunk(11).values
                 tmp_x = self.convert_SHM_data(tmp_x)
+                tmp_x = tmp_x[None, :, :]
 
                 y = np.vstack((y, tmp_y))
                 x = np.vstack((x, tmp_x))
@@ -173,7 +176,7 @@ class CsvDataset(data.Dataset):
         print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
         y = y.reshape(y.shape[0])
-        x = x.reshape(-1, 11, 11)
+        x = x.reshape(-1, 1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
         self.Y_train = torch.tensor(y, dtype=torch.long)
@@ -232,15 +235,15 @@ class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 6, 2),  # in_channels, out_channels, kernel_size
+            nn.Conv2d(1, 6, 3, padding=(1,1)),  # in_channels, out_channels, kernel_size, padding
             nn.ReLU(),
             # nn.MaxPool2d(2, 2),  # kernel_size, stride
-            nn.Conv2d(6, 16, 2),
+            nn.Conv2d(6, 16, 3, padding=(1,1)),
             nn.ReLU(),
             # nn.MaxPool2d(2, 2)
         )
         self.fc = nn.Sequential(
-            nn.Linear(16 * 4 * 4, 80),
+            nn.Linear(16 * 11 * 11, 80),
             nn.ReLU(),
             nn.Linear(80, 64),
             nn.ReLU(),
