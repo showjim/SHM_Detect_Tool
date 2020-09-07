@@ -15,7 +15,7 @@ import sys
 sys.path.append("..")
 import d2lzh_pytorch as d2l
 
-__version__ = 'SHM Detect Tool Beta V0.1'
+__version__ = 'SHM Detect Tool Beta V0.2'
 __author__ = 'zhouchao486@gmail.com'
 
 # %% load data
@@ -48,10 +48,13 @@ optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 num_epochs = 80 #320
 d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
+# %% save the state
+torch.save(net.state_dict(), './stat_dict.pth')
+
 # %% show result
 X, y = iter(test_iter).next()
 true_labels = d2l.get_custom_shm_labels(y.numpy())  # d2l.get_fashion_mnist_labels(y.numpy())
 pred_labels = d2l.get_custom_shm_labels(
     net(X).argmax(dim=1).numpy())  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
 titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-d2l.show_fashion_mnist(X[0:36], titles[0:36])
+d2l.show_fashion_mnist(X[0:45], titles[0:45])
