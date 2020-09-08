@@ -158,6 +158,15 @@ class CsvDataset(data.Dataset):
         x = np.zeros([1, 11, 11], dtype=float)
         y = np.zeros([1], dtype=float)
         self.result_dict = {'Fail': [0], 'Pass': [1], 'Vol-Wall': [2], 'Freq-Wall': [3], 'Marginal': [4]}
+        # self.result_dict = {'Fail':           [1, 0, 0, 0, 0, 0],
+        #                     'Pass':           [0, 1, 0, 0, 0, 0],
+        #                     'Fail-Vol-Wall':  [1, 0, 1, 0, 0, 0],
+        #                     'Fail-Freq-Wall': [1, 0, 0, 1, 0, 0],
+        #                     'Fail-Marginal':  [1, 0, 0, 0, 1, 0],
+        #                     'Fail-Hole':      [1, 0, 0, 0, 0, 1],
+        #                     'Pass-Marginal':  [0, 1, 0, 0, 1, 0],
+        #                     'Fail-Vol-Freq':  [1, 0, 1, 1, 0, 0],
+        #                     'Fail-Vol-Hole':  [1, 0, 1, 0, 0, 1]}
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
         # Read data in chunck
         go = True
