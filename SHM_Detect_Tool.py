@@ -34,8 +34,9 @@ train_iter, test_iter = d2l.load_custom_shm_data(batch_size, filename)  # d2l.lo
 # for params in net.parameters():
 #     init.normal_(params, mean=0, std=0.01)
 
-# net = d2l.LeNet()
-net = d2l.AlexNet()
+net = d2l.LeNet()
+# net = d2l.AlexNet()
+net.train()
 
 # %% define loss function
 loss = torch.nn.CrossEntropyLoss()
@@ -54,10 +55,10 @@ torch.save(net.state_dict(), './stat_dict.pth')
 
 # %% show result
 net.eval()
+# print(net.training)
 X, y = iter(test_iter).next()
 true_labels = d2l.get_custom_shm_labels(y.numpy())  # d2l.get_fashion_mnist_labels(y.numpy())
 pred_labels = d2l.get_custom_shm_labels(
     net(X).argmax(dim=1).numpy())  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
 titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
 d2l.show_fashion_mnist(X[0:45], titles[0:45])
-net.train()

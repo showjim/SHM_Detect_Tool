@@ -133,8 +133,8 @@ def use_svg_display():
 
 def show_fashion_mnist(images, labels):
     # use_svg_display()
-    plt.tight_layout()
     _, figs = plt.subplots(5, int(len(images) / 5), figsize=(12, 8))
+    plt.tight_layout()
     figs = figs.flatten()
     for f, img, lbl in zip(figs, images, labels):
         f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
