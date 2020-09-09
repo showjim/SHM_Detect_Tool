@@ -41,7 +41,8 @@ if __name__ == '__main__':
 
     # %% define loss function
     # loss = torch.nn.CrossEntropyLoss()
-    loss = torch.nn.BCELoss()
+    # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
+    loss = torch.nn.BCEWithLogitsLoss() #BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
     # %% optimise function
     lr = 0.01
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     # %% run training
-    num_epochs = 150  # 320
+    num_epochs = 200  # 320
     d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
     # %% save the state
