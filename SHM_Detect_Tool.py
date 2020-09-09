@@ -35,12 +35,13 @@ if __name__ == '__main__':
     # for params in net.parameters():
     #     init.normal_(params, mean=0, std=0.01)
 
-    net = d2l.LeNet()
-    # net = d2l.AlexNet()
+    # net = d2l.LeNet()
+    net = d2l.AlexNet()
     net.train()
 
     # %% define loss function
-    loss = torch.nn.CrossEntropyLoss()
+    # loss = torch.nn.CrossEntropyLoss()
+    loss = torch.nn.BCELoss()
 
     # %% optimise function
     lr = 0.001
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     # %% run training
-    num_epochs = 80  # 320
+    num_epochs = 1  # 320
     d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
     # %% save the state
@@ -60,6 +61,6 @@ if __name__ == '__main__':
     X, y = iter(test_iter).next()
     true_labels = d2l.get_custom_shm_labels(y.numpy())  # d2l.get_fashion_mnist_labels(y.numpy())
     pred_labels = d2l.get_custom_shm_labels(
-        net(X).argmax(dim=1).numpy())  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
+        net(X).numpy())  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
     titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
     d2l.show_fashion_mnist(X[0:45], titles[0:45])

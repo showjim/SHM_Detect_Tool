@@ -60,7 +60,8 @@ class FlattenLayer(nn.Module):
 def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
     for X, y in data_iter:
-        acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
+        # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
+        acc_sum += (net(X) == y).float().sum().item()
         n += y.shape[0]
     return acc_sum / n
 
@@ -73,14 +74,14 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 100, 0.5, 1])
+    plt.axis([0, 150, 0.5, 1])
     plt.grid()
     for epoch in range(num_epochs):
         adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
-            l = loss(y_hat, y).sum()
+            l = loss(y_hat, y) #.sum()
             # Reset the grad
             if optimizer is not None:
                 optimizer.zero_grad()
@@ -93,7 +94,8 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
             else:
                 optimizer.step()  # Set the parameters
             train_l_sum += l.item()
-            train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
+            # train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
+            train_acc_sum += (y_hat == y).sum().item()
             n += y.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
         # plt.clf()
@@ -123,8 +125,14 @@ def get_fashion_mnist_labels(labels):
 
 
 def get_custom_shm_labels(labels):
-    text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal', '']
-    return [text_labels[int(i)] for i in labels]
+    text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal', 'Hole']
+    result = 'Expect: '
+    for i in range(len(labels)):
+        if labels[i] == 1.:
+            result = result + '-' + text_labels[i]
+    return [result]
+    # return [text_labels[int(i)] for i in labels]
+
 
 
 def use_svg_display():
@@ -156,23 +164,27 @@ class CsvDataset(data.Dataset):
         """
         self.data_count = 0
         x = np.zeros([1, 11, 11], dtype=float)
-        y = np.zeros([1], dtype=float)
-        self.result_dict = {'Fail': [0], 'Pass': [1], 'Vol-Wall': [2], 'Freq-Wall': [3], 'Marginal': [4]}
-        # self.result_dict = {'Fail':           [1, 0, 0, 0, 0, 0],
-        #                     'Pass':           [0, 1, 0, 0, 0, 0],
-        #                     'Fail-Vol-Wall':  [1, 0, 1, 0, 0, 0],
-        #                     'Fail-Freq-Wall': [1, 0, 0, 1, 0, 0],
-        #                     'Fail-Marginal':  [1, 0, 0, 0, 1, 0],
-        #                     'Fail-Hole':      [1, 0, 0, 0, 0, 1],
-        #                     'Pass-Marginal':  [0, 1, 0, 0, 1, 0],
-        #                     'Fail-Vol-Freq':  [1, 0, 1, 1, 0, 0],
-        #                     'Fail-Vol-Hole':  [1, 0, 1, 0, 0, 1]}
+        y = np.zeros([6], dtype=float)
+        self.result_dict = {'Fail': 0, 'Pass': 1, 'Vol': 2, 'Freq': 3, 'Marginal': 4, 'Hole': 5}
+        # self.result_dict = {'Fail':                   [1, 0, 0, 0, 0, 0],
+        #                     'Pass':                   [0, 1, 0, 0, 0, 0],
+        #                     'Fail-Vol':               [1, 0, 1, 0, 0, 0],
+        #                     'Fail-Freq':              [1, 0, 0, 1, 0, 0],
+        #                     'Fail-Marginal':          [1, 0, 0, 0, 1, 0],
+        #                     'Fail-Hole':              [1, 0, 0, 0, 0, 1],
+        #                     'Pass-Marginal':          [0, 1, 0, 0, 1, 0],
+        #                     'Fail-Vol-Freq':          [1, 0, 1, 1, 0, 0],
+        #                     'Fail-Vol-Hole':          [1, 0, 1, 0, 0, 1],
+        #                     'Fail-Vol-Marginal':      [1, 0, 1, 0, 1, 0],
+        #                     'Fail-Freq-Marginal':     [1, 0, 0, 1, 1, 0],
+        #                     'Fail-Marginal-Hole':     [1, 0, 0, 0, 1, 1]}
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
         # Read data in chunck
         go = True
         while go:
             try:
-                tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
+                # tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
+                tmp_y = self.convert_result(self.csv_df.get_chunk(1).values[0][0])
                 tmp_x = self.csv_df.get_chunk(11).values
                 tmp_x = self.convert_SHM_data(tmp_x)
                 tmp_x = tmp_x[None, :, :]
@@ -185,11 +197,11 @@ class CsvDataset(data.Dataset):
                 go = False
         print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
-        y = y.reshape(y.shape[0])
+        y = y.reshape(y.shape[0], y.shape[1])
         x = x.reshape(-1, 1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
-        self.Y_train = torch.tensor(y, dtype=torch.long)
+        self.Y_train = torch.tensor(y, dtype=torch.float)
 
     def __len__(self):
         # print len(self.landmarks_frame)
@@ -207,6 +219,17 @@ class CsvDataset(data.Dataset):
         tmp_np[tmp_np == '#'] = 0.
         tmp_np = tmp_np.astype(float)
         return tmp_np
+
+    def convert_result(self, text):
+        result = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        text_list = text.split('-')
+        dict_keys = self.result_dict.keys()
+        for i in range(len(text_list)):
+            if text_list[i] in dict_keys:
+                result[self.result_dict[text_list[i]]] = 1.0
+            else:
+                print('Wrong Key Word Found in Training Data')
+        return result
 
 
 def corr2d(X, K):  #
@@ -329,9 +352,9 @@ class AlexNet(nn.Module):
 
         # 第五层是全连接层，输入是 1204 ，输出是384
         self.fc1 = nn.Sequential(
-            nn.Linear(13*13*16, 64),
+            nn.Linear(13 * 13 * 16, 64),
             nn.ReLU(),
-            nn.Dropout(0.5)
+            nn.Dropout(0.2)
         )
 
         # 第六层是全连接层，输入是 384， 输出是192
@@ -342,7 +365,10 @@ class AlexNet(nn.Module):
         )
 
         # 第七层是全连接层，输入是192， 输出是 10
-        self.fc3 = nn.Linear(32, 2)
+        self.fc3 = nn.Sequential(
+            nn.Linear(32, 6),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
         x = self.conv1(x)
