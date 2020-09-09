@@ -61,7 +61,11 @@ def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
     for X, y in data_iter:
         # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
-        acc_sum += (net(X) == y).float().sum().item()
+        y_hat = net(X)
+        y_hat[y_hat > 0.5] = 1
+        y_hat[y_hat <= 0.5] = 0
+        check_result = torch.sum(y_hat == y, 1)
+        acc_sum += (check_result == 6).float().sum().item()
         n += y.shape[0]
     return acc_sum / n
 
@@ -74,14 +78,14 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 150, 0.5, 1])
+    plt.axis([0, 150, 0., 1])
     plt.grid()
     for epoch in range(num_epochs):
-        adjust_learning_rate(optimizer, epoch, lr)
+        # adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
-            l = loss(y_hat, y) #.sum()
+            l = loss(y_hat, y)  # .sum()
             # Reset the grad
             if optimizer is not None:
                 optimizer.zero_grad()
@@ -95,7 +99,10 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
                 optimizer.step()  # Set the parameters
             train_l_sum += l.item()
             # train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
-            train_acc_sum += (y_hat == y).sum().item()
+            y_hat[y_hat > 0.5] = 1
+            y_hat[y_hat <= 0.5] = 0
+            check_result = torch.sum(y_hat == y, 1)
+            train_acc_sum += (check_result == 6).sum().item()
             n += y.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
         # plt.clf()
@@ -124,15 +131,17 @@ def get_fashion_mnist_labels(labels):
     return [text_labels[int(i)] for i in labels]
 
 
-def get_custom_shm_labels(labels):
-    text_labels = ['Fail', 'Pass', 'Vol-Wall', 'Freq-Wall', 'Marginal', 'Hole']
-    result = 'Expect: '
+def get_custom_shm_labels(labels, type):
+    text_labels = ['Fail', 'Pass', 'Vol', 'Freq', 'Marginal', 'Hole']
+    result_list = []
     for i in range(len(labels)):
-        if labels[i] == 1.:
-            result = result + '-' + text_labels[i]
-    return [result]
+        result = type + ': '
+        for j in range(len(labels[i])):
+            if labels[i][j] == 1.:
+                result = result + '-' + text_labels[j]
+        result_list.append(result)
+    return result_list
     # return [text_labels[int(i)] for i in labels]
-
 
 
 def use_svg_display():
