@@ -163,7 +163,7 @@ def show_fashion_mnist(images, labels):
 
 class CsvDataset(data.Dataset):
 
-    def __init__(self, csv_file):
+    def __init__(self, csv_file, mode='training'):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -192,8 +192,10 @@ class CsvDataset(data.Dataset):
         go = True
         while go:
             try:
-                # tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
-                tmp_y = self.convert_result(self.csv_df.get_chunk(1).values[0][0])
+                if mode == 'training':
+                    tmp_y = self.convert_result(self.csv_df.get_chunk(1).values[0][0])
+                else:
+                    tmp_y = self.result_dict[self.csv_df.get_chunk(1).values[0][0]]
                 tmp_x = self.csv_df.get_chunk(11).values
                 tmp_x = self.convert_SHM_data(tmp_x)
                 tmp_x = tmp_x[None, :, :]
@@ -210,7 +212,10 @@ class CsvDataset(data.Dataset):
         x = x.reshape(-1, 1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
-        self.Y_train = torch.tensor(y, dtype=torch.float)
+        if mode == 'training':
+            self.Y_train = torch.tensor(y, dtype=torch.float)
+        else:
+            self.Y_train = torch.tensor(y)
 
     def __len__(self):
         # print len(self.landmarks_frame)

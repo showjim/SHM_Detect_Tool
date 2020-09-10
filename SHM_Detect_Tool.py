@@ -76,9 +76,9 @@ class Application(QWidget):
                 else:
                     if new_shm_flag:
                         res = re.search('(\t(P|\*|\.|#))+', line)
-                        if (res is not None) and shm_start_flag==False:
+                        if (res is not None) and shm_start_flag == False:
                             shm_start_flag = True
-                        elif (res is None) and shm_start_flag==True:
+                        elif (res is None) and shm_start_flag == True:
                             new_shm_flag = False
                             shm_start_flag = False
 
@@ -97,13 +97,7 @@ class Application(QWidget):
                     f.write('\n')
             # [f.write('{0}\n{1}\n'.format(key, value)) for key, value in self.result_dict.items()]
 
-    def run_deep_learning(self):
-        # %% load data
-        batch_size = 80  # 256
-        filename = r'custom_SHM_data.csv'
-        train_iter, test_iter = d2l.load_custom_shm_data(batch_size,
-                                                         filename)  # d2l.load_data_fashion_mnist(batch_size)
-
+    def cnn_net(self, mode='training'):
         # %% define&initial module
         # num_inputs, num_outputs, num_hiddens = 121, 2, 64  # 784, 10, 256
         # net = nn.Sequential(
@@ -117,38 +111,72 @@ class Application(QWidget):
 
         # net = d2l.LeNet()
         net = d2l.AlexNet()
-        net.train()
 
-        # %% define loss function
-        # loss = torch.nn.CrossEntropyLoss()
-        # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-        loss = torch.nn.BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+        if mode == 'training':
+            net.train()
+            # %% load data
+            batch_size = 80  # 256
+            filename = r'custom_SHM_data.csv'
+            train_iter, test_iter = d2l.load_custom_shm_data(batch_size,
+                                                             filename)  # d2l.load_data_fashion_mnist(batch_size)
 
-        # %% optimise function
-        lr = 0.01
-        # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-        optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+            # %% define loss function
+            # loss = torch.nn.CrossEntropyLoss()
+            # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
+            loss = torch.nn.BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
-        # %% run training
-        num_epochs = 200  # 320
-        d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
+            # %% optimise function
+            lr = 0.01
+            # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
-        # %% save the state
-        torch.save(net.state_dict(), './stat_dict.pth')
+            # %% run training
+            num_epochs = 200  # 320
+            d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
-        # %% show result
-        net.eval()
-        # print(net.training)
-        X, y = iter(test_iter).next()
-        true_labels = d2l.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
-        y_hat = net(X)
-        y_hat[y_hat > 0.5] = 1
-        y_hat[y_hat <= 0.5] = 0
-        pred_labels = d2l.get_custom_shm_labels(
-            y_hat.detach().numpy(),
-            'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
-        titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-        d2l.show_fashion_mnist(X[0:45], titles[0:45])
+            # %% save the state
+            torch.save(net.state_dict(), './stat_dict.pth')
+
+            # %% show result
+            net.eval()
+            # print(net.training)
+            X, y = iter(test_iter).next()
+            true_labels = d2l.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
+            y_hat = net(X)
+            y_hat[y_hat > 0.5] = 1
+            y_hat[y_hat <= 0.5] = 0
+            pred_labels = d2l.get_custom_shm_labels(
+                y_hat.detach().numpy(),
+                'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
+            titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+            d2l.show_fashion_mnist(X[0:45], titles[0:45])
+        else:
+            # %% load state dict
+            net.load_state_dict(torch.load('./stat_dict.pth'))
+            # %% show result
+            net.eval()
+            test_iter = self.convert_shm_to_tensor()
+            X, y = iter(test_iter).next()
+            y_hat = net(X)
+            y_hat[y_hat > 0.5] = 1
+            y_hat[y_hat <= 0.5] = 0
+            true_labels = y.numpy()
+            pred_labels = d2l.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
+            titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+            d2l.show_fashion_mnist(X[0:45], titles[0:45])
+
+
+    def convert_shm_to_tensor(self):
+        if sys.platform.startswith('win'):
+            num_workers = 0  # 0
+        else:
+            num_workers = 4
+
+        dataset = d2l.CsvDataset('my_file.csv')
+        batch_size = len(self.result_dict)
+        test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
+        return test_iter
 
 
 if __name__ == '__main__':
