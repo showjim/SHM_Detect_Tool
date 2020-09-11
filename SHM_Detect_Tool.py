@@ -17,7 +17,7 @@ import d2lzh_pytorch as d2l
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.4'
+__version__ = 'SHM Detect Tool Beta V0.4.5'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -222,9 +222,7 @@ class Application(QWidget):
             print('Xlsx file is written!')
 
         except xlsxwriter.exceptions.FileCreateError:  # PermissionError:
-            self.status_text.setText(
-                str("Please close " + report_name.split('/')[-1]))
-            self.progress_bar.setValue(0)
+            print("Please close " + report_name.split('/')[-1])
 
 
 if __name__ == '__main__':
