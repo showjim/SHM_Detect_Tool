@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
-from abc import ABC
-
 import torch
 from torch import nn
 import torchvision
-from IPython import display
 import matplotlib.pyplot as plt
 
 import pandas as pd
@@ -142,11 +139,6 @@ def get_custom_shm_labels(labels, type):
         result_list.append(result)
     return result_list
     # return [text_labels[int(i)] for i in labels]
-
-
-def use_svg_display():
-    display.set_matplotlib_formats('svg')
-
 
 def show_fashion_mnist(images, labels):
     # use_svg_display()

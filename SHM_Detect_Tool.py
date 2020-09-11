@@ -173,8 +173,8 @@ class Application(QWidget):
             y_hat[y_hat <= 0.5] = 0
             true_labels = y[0]
             pred_labels = d2l.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-            # titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            # d2l.show_fashion_mnist(X[0:45], titles[0:45])
+            titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+            d2l.show_fashion_mnist(X[0:45], titles[0:45])
             titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
             self.generate_shm_report_xlsx(titles, raw_dict)
 
@@ -219,6 +219,7 @@ class Application(QWidget):
                                          {'type': 'cell', 'criteria': 'equal to',
                                           'value': '"P"', 'format': format_7XXX})
             workbook.close()
+            print('Xlsx file is written!')
 
         except xlsxwriter.exceptions.FileCreateError:  # PermissionError:
             self.status_text.setText(
