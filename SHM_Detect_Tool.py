@@ -12,7 +12,7 @@ from torch.nn import init
 import numpy as np
 import sys
 import re
-
+import xlsxwriter
 sys.path.append("..")
 import d2lzh_pytorch as d2l
 
@@ -168,16 +168,17 @@ class Application(QWidget):
             net.load_state_dict(torch.load('./stat_dict.pth'))
             # %% show result
             net.eval()
-            test_iter = self.convert_shm_to_tensor()
+            test_iter, raw_dict = self.convert_shm_to_tensor()
             X, y = iter(test_iter).next()
             y_hat = net(X)
             y_hat[y_hat > 0.5] = 1
             y_hat[y_hat <= 0.5] = 0
             true_labels = y[0]
             pred_labels = d2l.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-            titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            d2l.show_fashion_mnist(X[0:45], titles[0:45])
-
+            # titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+            # d2l.show_fashion_mnist(X[0:45], titles[0:45])
+            titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
+            self.generate_shm_report_xlsx(titles, raw_dict)
 
     def convert_shm_to_tensor(self):
         if sys.platform.startswith('win'):
@@ -187,9 +188,44 @@ class Application(QWidget):
 
         dataset = d2l.CsvDataset_Test('my_file.csv')
         batch_size = dataset.__len__() #len(self.result_dict)
-        test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-        return test_iter
+        return test_iter, dataset.raw_dict
+
+    def generate_shm_report_xlsx(self, titles, shms):
+        report_name = 'report.xlsx'
+        # In case someone has the file open
+        try:
+            # Create a workbook and add a  worksheet.
+            workbook = xlsxwriter.Workbook(report_name)
+            worksheet = workbook.add_worksheet('SHM Result')
+
+            # Light red
+            format_2XXX = workbook.add_format({'bg_color': '#FF0000'})
+            # Dark green
+            format_7XXX = workbook.add_format({'bg_color': '#008000'})
+
+            row = 0
+            for title, shm in zip(titles, shms):
+                worksheet.write(row, 0, title)
+                row += 1
+                for i in range(len(shms[shm])):
+                    worksheet.write_row(row, 0, shms[shm][i])
+                    row += 1
+                # row += shm.size(1)
+            col = len(shms[shm][i])
+            worksheet.conditional_format(0, 0, row, col,
+                                         {'type': 'cell', 'criteria': 'equal to',
+                                          'value': '"."', 'format': format_2XXX})
+            worksheet.conditional_format(0, 0, row, col,
+                                         {'type': 'cell', 'criteria': 'equal to',
+                                          'value': '"P"', 'format': format_7XXX})
+            workbook.close()
+
+        except xlsxwriter.exceptions.FileCreateError:  # PermissionError:
+            self.status_text.setText(
+                str("Please close " + report_name.split('/')[-1]))
+            self.progress_bar.setValue(0)
 
 
 if __name__ == '__main__':

@@ -252,7 +252,9 @@ class CsvDataset_Test(data.Dataset):
         """
         self.data_count = 0
         x = np.zeros([1, 11, 11], dtype=float)
-        y = [['Dummy']] #np.zeros([1], dtype=str)
+        # y = [['Dummy']] #np.zeros([1], dtype=str)
+        y = []
+        self.raw_dict = {}
         self.result_dict = {'Fail': 0, 'Pass': 1, 'Vol': 2, 'Freq': 3, 'Marginal': 4, 'Hole': 5}
 
         self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
@@ -262,11 +264,15 @@ class CsvDataset_Test(data.Dataset):
             try:
                 tmp_y = [self.csv_df.get_chunk(1).values[0][0]]
                 tmp_x = self.csv_df.get_chunk(11).values
+                self.raw_dict[tmp_y[0]] = tmp_x.tolist()
                 tmp_x = self.convert_SHM_data(tmp_x)
                 tmp_x = tmp_x[None, :, :]
 
                 y.append(tmp_y)
-                x = np.vstack((x, tmp_x))
+                if self.data_count == 0:
+                    x = tmp_x
+                else:
+                    x = np.vstack((x, tmp_x))
                 self.data_count += 1
             except Exception as e:
                 print(type(e))
@@ -277,7 +283,8 @@ class CsvDataset_Test(data.Dataset):
         x = x.reshape(-1, 1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
-        self.Y_train = y #torch.tensor(y)
+        self.Y_train = y #np.array(y) #torch.tensor(y)
+        pass
 
     def __len__(self):
         # print len(self.landmarks_frame)
