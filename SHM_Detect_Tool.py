@@ -19,7 +19,7 @@ import d2lzh_pytorch as d2l
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.3'
+__version__ = 'SHM Detect Tool Beta V0.4'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -33,14 +33,26 @@ class Application(QWidget):
         # Title and window size
         self.setWindowTitle(__version__)
         self.resize(200, 100)
-        # Load STDF
-        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), '')
+        # Load SHM
+        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Load SHM Log')
         self.load_shm_button.setToolTip('Load SHM log')
         self.load_shm_button.clicked.connect(self.load_shm)
 
+        # Train net
+        self.train_net_button = QPushButton(qta.icon('mdi.brain', color='blue'), 'Training CNN Net')
+        self.train_net_button.setToolTip('Train a new cnn net')
+        self.train_net_button.clicked.connect(lambda: self.cnn_net('training'))
+
+        # Analyse
+        self.analyse_shm_button = QPushButton(qta.icon('mdi.test-tube', color='blue'), 'Analyse SHM Log')
+        self.analyse_shm_button.setToolTip('Train a new cnn net')
+        self.analyse_shm_button.clicked.connect(lambda: self.cnn_net('test'))
+
         # Config layout
         layout = QGridLayout()
-        layout.addWidget(self.load_shm_button, 0, 0)
+        layout.addWidget(self.load_shm_button, 0, 1)
+        layout.addWidget(self.train_net_button, 0, 0)
+        layout.addWidget(self.analyse_shm_button, 0, 2)
         self.setLayout(layout)
 
     def load_shm(self):
@@ -64,11 +76,11 @@ class Application(QWidget):
             while True:
                 line = buffer.readline()
                 if line.startswith('FC_') and line.endswith('_SHM:\n'):
-                    cur_instance = line
+                    cur_instance = line[0:-1]
                     line = buffer.readline()
                     if line.startswith('Site:'):
                         res = re.search('\d+', line)
-                        cur_site_index = res.group()
+                        cur_site_index = res.group() + ',' * 10
                         self.result_dict[cur_instance + cur_site_index] = []
                         new_shm_flag = True
                         shm_start_flag = False
@@ -83,7 +95,7 @@ class Application(QWidget):
                             shm_start_flag = False
 
                         if shm_start_flag:
-                            tmp = res.group().split('\t')[1:-1]
+                            tmp = res.group().split('\t')[1:]
                             self.result_dict[cur_instance + cur_site_index].append(tmp)
 
                 if len(line) == 0:
@@ -96,6 +108,7 @@ class Application(QWidget):
                     f.write(','.join(i for i in val))
                     f.write('\n')
             # [f.write('{0}\n{1}\n'.format(key, value)) for key, value in self.result_dict.items()]
+        # self.cnn_net('test')
 
     def cnn_net(self, mode='training'):
         # %% define&initial module
@@ -160,7 +173,7 @@ class Application(QWidget):
             y_hat = net(X)
             y_hat[y_hat > 0.5] = 1
             y_hat[y_hat <= 0.5] = 0
-            true_labels = y.numpy()
+            true_labels = y[0]
             pred_labels = d2l.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
             d2l.show_fashion_mnist(X[0:45], titles[0:45])
@@ -172,8 +185,8 @@ class Application(QWidget):
         else:
             num_workers = 4
 
-        dataset = d2l.CsvDataset('my_file.csv')
-        batch_size = len(self.result_dict)
+        dataset = d2l.CsvDataset_Test('my_file.csv')
+        batch_size = dataset.__len__() #len(self.result_dict)
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
         return test_iter
