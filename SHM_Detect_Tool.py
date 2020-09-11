@@ -7,12 +7,10 @@
 # A Tool to Detect the Result of SHM              #
 ###################################################
 import torch
-from torch import nn
-from torch.nn import init
-import numpy as np
 import sys
 import re
 import xlsxwriter
+
 sys.path.append("..")
 import d2lzh_pytorch as d2l
 
@@ -187,7 +185,7 @@ class Application(QWidget):
             num_workers = 4
 
         dataset = d2l.CsvDataset_Test('my_file.csv')
-        batch_size = dataset.__len__() #len(self.result_dict)
+        batch_size = dataset.__len__()  # len(self.result_dict)
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
         return test_iter, dataset.raw_dict
