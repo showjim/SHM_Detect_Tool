@@ -203,13 +203,21 @@ class Application(QWidget):
             # Dark green
             format_7XXX = workbook.add_format({'bg_color': '#008000'})
 
-            row = 0
+            # Optimise xlsx output format
+            worksheet.outline_settings(True, False, True, False)
+            worksheet.write_row(0, 0, ['Instance', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
+            row = 1
             for title, shm in zip(titles, shms):
-                worksheet.write(row, 0, title)
+                info_line = title.split(':')
+                info_line[1:1] = [''] * 3
+                worksheet.write_row(row, 0, info_line)
+                worksheet.set_row(row, None, None, {'collapsed': True})
                 row += 1
                 for i in range(len(shms[shm])):
                     worksheet.write_row(row, 0, shms[shm][i])
+                    worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                     row += 1
+
                 # row += shm.size(1)
             col = len(shms[shm][i])
             worksheet.conditional_format(0, 0, row, col,
