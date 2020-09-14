@@ -17,7 +17,7 @@ import d2lzh_pytorch as d2l
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.4.5'
+__version__ = 'SHM Detect Tool Beta V0.4.6'
 __author__ = 'zhouchao486@gmail.com'
 
 
