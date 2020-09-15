@@ -407,7 +407,7 @@ class AlexNet(nn.Module):
 
         # 第三层是 5x5 的卷积， 输入的channels 是64，输出的channels 是64，没有padding
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 16, 2, padding=1),
+            nn.Conv2d(32, 16, 2),
             nn.ReLU()
         )
 
@@ -416,7 +416,7 @@ class AlexNet(nn.Module):
 
         # 第五层是全连接层，输入是 1204 ，输出是384
         self.fc1 = nn.Sequential(
-            nn.Linear(13 * 13 * 16, 64),
+            nn.Linear(11 * 11 * 16, 64),
             nn.ReLU(),
             nn.Dropout(0.2)
         )
