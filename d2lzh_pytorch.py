@@ -407,7 +407,17 @@ class AlexNet(nn.Module):
 
         # 第三层是 5x5 的卷积， 输入的channels 是64，输出的channels 是64，没有padding
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 16, 2),
+            nn.Conv2d(32, 16, 3, padding=1),
+            nn.ReLU()
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(16, 8, 3, padding=1),
+            nn.ReLU()
+        )
+
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(8, 4, 3, padding=0),
             nn.ReLU()
         )
 
@@ -416,7 +426,7 @@ class AlexNet(nn.Module):
 
         # 第五层是全连接层，输入是 1204 ，输出是384
         self.fc1 = nn.Sequential(
-            nn.Linear(11 * 11 * 16, 64),
+            nn.Linear(10 * 10 * 4, 64),
             nn.ReLU(),
             nn.Dropout(0.2)
         )
@@ -439,6 +449,8 @@ class AlexNet(nn.Module):
         # x = self.max_pool1(x)
         x = self.conv2(x)
         # x = self.max_pool2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
 
         # 将图片矩阵拉平
         x = x.view(x.shape[0], -1)
