@@ -62,9 +62,9 @@ def evaluate_accuracy(data_iter, net):
         y_hat[y_hat > 0.5] = 1
         y_hat[y_hat <= 0.5] = 0
         check_result = torch.sum(y_hat == y, 1)
-        check_result_pf = (y_hat[0] == y[0]) and (y_hat[1] == y[1])
+        check_result_pf = torch.logical_and(y_hat[:, 0] == y[:, 0], y_hat[:, 1] == y[:, 1])
         acc_sum += (check_result == 6).float().sum().item()
-        acc_sum_pf += check_result_pf
+        acc_sum_pf += check_result_pf.float().sum().item()
         n += y.shape[0]
     return acc_sum / n, acc_sum_pf / n
 
@@ -80,7 +80,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
     plt.axis([0, 200, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
-        # adjust_learning_rate(optimizer, epoch, lr)
+        adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
@@ -106,6 +106,7 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=N
         test_acc, test_acc_pf = evaluate_accuracy(test_iter, net)
         # plt.clf()
         plt.plot(epoch, test_acc, '.r')
+        plt.plot(epoch, test_acc_pf, '+b')
         # plt.grid()
         # plt.plot(epoch, train_l_sum / n, 'xb')
         plt.pause(0.0001)
