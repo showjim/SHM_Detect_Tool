@@ -126,7 +126,7 @@ class Application(QWidget):
         if mode == 'training':
             net.train()
             # %% load data
-            batch_size = 80  # 256
+            batch_size = 100  # 256
             filename = r'custom_SHM_data.csv'
             train_iter, test_iter = d2l.load_custom_shm_data(batch_size,
                                                              filename)  # d2l.load_data_fashion_mnist(batch_size)
@@ -142,7 +142,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
             # %% run training
-            num_epochs = 200  # 320
+            num_epochs = 150  # 320
             d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
