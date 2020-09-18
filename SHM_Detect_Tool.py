@@ -12,7 +12,7 @@ import re
 import xlsxwriter
 
 sys.path.append("..")
-import d2lzh_pytorch as d2l
+import src_pytorch as src
 
 from PyQt5.QtWidgets import *
 import qtawesome as qta
@@ -121,14 +121,14 @@ class Application(QWidget):
         #     init.normal_(params, mean=0, std=0.01)
 
         # net = d2l.LeNet()
-        net = d2l.AlexNet()
+        net = src.AlexNet()
 
         if mode == 'training':
             net.train()
             # %% load data
             batch_size = 100  # 256
             filename = r'custom_SHM_data.csv'
-            train_iter, test_iter = d2l.load_custom_shm_data(batch_size,
+            train_iter, test_iter = src.load_custom_shm_data(batch_size,
                                                              filename)  # d2l.load_data_fashion_mnist(batch_size)
 
             # %% define loss function
@@ -143,7 +143,7 @@ class Application(QWidget):
 
             # %% run training
             num_epochs = 200  # 320
-            d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
+            src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
             torch.save(net.state_dict(), './stat_dict.pth')
@@ -152,15 +152,15 @@ class Application(QWidget):
             net.eval()
             # print(net.training)
             X, y = iter(test_iter).next()
-            true_labels = d2l.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
+            true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
             y_hat[y_hat > 0.5] = 1
             y_hat[y_hat <= 0.5] = 0
-            pred_labels = d2l.get_custom_shm_labels(
+            pred_labels = src.get_custom_shm_labels(
                 y_hat.detach().numpy(),
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            d2l.show_fashion_mnist(X[0:45], titles[0:45])
+            src.show_shm_fig(X[0:45], titles[0:45])
         else:
             # %% load state dict
             net.load_state_dict(torch.load('./stat_dict.pth'))
@@ -172,9 +172,9 @@ class Application(QWidget):
             y_hat[y_hat > 0.5] = 1
             y_hat[y_hat <= 0.5] = 0
             true_labels = y[0]
-            pred_labels = d2l.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
+            pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            d2l.show_fashion_mnist(X[0:45], titles[0:45])
+            src.show_shm_fig(X[0:45], titles[0:45])
             titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
             self.generate_shm_report_xlsx(titles, raw_dict)
 
@@ -184,7 +184,7 @@ class Application(QWidget):
         else:
             num_workers = 4
 
-        dataset = d2l.CsvDataset_Test('my_file.csv')
+        dataset = src.CsvDataset_Test('my_file.csv')
         batch_size = dataset.__len__()  # len(self.result_dict)
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 

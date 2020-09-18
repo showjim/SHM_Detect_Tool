@@ -74,7 +74,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
         param.data -= lr * param.grad / batch_size
 
 
-def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
+def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
     plt.axis([0, 200, 0., 1.])
@@ -143,7 +143,7 @@ def get_custom_shm_labels(labels, type):
     return result_list
     # return [text_labels[int(i)] for i in labels]
 
-def show_fashion_mnist(images, labels):
+def show_shm_fig(images, labels):
     # use_svg_display()
     _, figs = plt.subplots(5, int(len(images) / 5), figsize=(12, 8))
     plt.tight_layout()
