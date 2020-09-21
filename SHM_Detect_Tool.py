@@ -37,13 +37,13 @@ class Application(QWidget):
         self.load_shm_button.clicked.connect(self.load_shm)
 
         # Train net
-        self.train_net_button = QPushButton(qta.icon('mdi.brain', color='blue'), 'Training CNN Net')
-        self.train_net_button.setToolTip('Train a new cnn net')
+        self.train_net_button = QPushButton(qta.icon('mdi.brain', color='blue'), 'Training CNN')
+        self.train_net_button.setToolTip('Train a new cnn network')
         self.train_net_button.clicked.connect(lambda: self.cnn_net('training'))
 
         # Analyse
         self.analyse_shm_button = QPushButton(qta.icon('mdi.test-tube', color='blue'), 'Analyse SHM Log')
-        self.analyse_shm_button.setToolTip('Train a new cnn net')
+        self.analyse_shm_button.setToolTip('Analyse SHM Log')
         self.analyse_shm_button.clicked.connect(lambda: self.cnn_net('test'))
 
         # Config layout
@@ -123,6 +123,13 @@ class Application(QWidget):
         # net = d2l.LeNet()
         net = src.AlexNet()
 
+        # print parameters count
+        pytorch_total_params = sum(p.numel() for p in net.parameters())
+        print('neural network architecture has ', pytorch_total_params, ' parameters.')
+        pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+        print('neural network architecture has ', pytorch_total_params, ' trainable parameters.')
+
+
         if mode == 'training':
             net.train()
             # %% load data
@@ -142,7 +149,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
             # %% run training
-            num_epochs = 200  # 320
+            num_epochs = 80  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state

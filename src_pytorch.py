@@ -55,6 +55,8 @@ class FlattenLayer(nn.Module):
 
 
 def evaluate_accuracy(data_iter, net):
+    # net.eval()
+    # net.train()
     acc_sum, n, acc_sum_pf = 0.0, 0, 0.0
     for X, y in data_iter:
         # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
@@ -66,6 +68,7 @@ def evaluate_accuracy(data_iter, net):
         acc_sum += (check_result == 6).float().sum().item()
         acc_sum_pf += check_result_pf.float().sum().item()
         n += y.shape[0]
+    # net.train()
     return acc_sum / n, acc_sum_pf / n
 
 
@@ -77,7 +80,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 200, 0., 1.])
+    plt.axis([0, 100, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
         adjust_learning_rate(optimizer, epoch, lr)
@@ -402,25 +405,28 @@ class AlexNet(nn.Module):
         # ReLU 的参数为inplace，True表示直接对输入进行修改，False表示创建新创建一个对象进行修改
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, 32, 2, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU()
         )
-
         # 第二层为 3x3 的池化，步长为2，没有padding
         # self.max_pool1 = nn.MaxPool2d(3, 2)
 
         # 第三层是 5x5 的卷积， 输入的channels 是64，输出的channels 是64，没有padding
         self.conv2 = nn.Sequential(
             nn.Conv2d(32, 16, 3, padding=1),
+            nn.BatchNorm2d(16),
             nn.ReLU()
         )
 
         self.conv3 = nn.Sequential(
             nn.Conv2d(16, 8, 3, padding=1),
+            nn.BatchNorm2d(8),
             nn.ReLU()
         )
 
         self.conv4 = nn.Sequential(
             nn.Conv2d(8, 4, 3, padding=0),
+            nn.BatchNorm2d(4),
             nn.ReLU()
         )
 
@@ -430,6 +436,7 @@ class AlexNet(nn.Module):
         # 第五层是全连接层，输入是 1204 ，输出是384
         self.fc1 = nn.Sequential(
             nn.Linear(10 * 10 * 4, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Dropout(0.2)
         )
@@ -437,6 +444,7 @@ class AlexNet(nn.Module):
         # 第六层是全连接层，输入是 384， 输出是192
         self.fc2 = nn.Sequential(
             nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(0.5)
         )
