@@ -17,7 +17,7 @@ import src_pytorch as src
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.4.7'
+__version__ = 'SHM Detect Tool Beta V0.5'
 __author__ = 'zhouchao486@gmail.com'
 
 
