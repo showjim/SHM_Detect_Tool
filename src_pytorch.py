@@ -80,7 +80,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 100, 0., 1.])
+    plt.axis([0, 80, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
         adjust_learning_rate(optimizer, epoch, lr)
@@ -172,6 +172,7 @@ class CsvDataset(data.Dataset):
         self.data_count = 0
         x = np.zeros([1, 11, 11], dtype=float)
         y = np.zeros([6], dtype=float)
+        y[0] = 1
         self.result_dict = {'Fail': 0, 'Pass': 1, 'Vol': 2, 'Freq': 3, 'Marginal': 4, 'Hole': 5}
         # self.result_dict = {'Fail':                   [1, 0, 0, 0, 0, 0],
         #                     'Pass':                   [0, 1, 0, 0, 0, 0],
@@ -438,7 +439,7 @@ class AlexNet(nn.Module):
             nn.Linear(10 * 10 * 4, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
-            nn.Dropout(0.2)
+            # nn.Dropout(0.2)
         )
 
         # 第六层是全连接层，输入是 384， 输出是192
@@ -446,7 +447,7 @@ class AlexNet(nn.Module):
             nn.Linear(64, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
-            nn.Dropout(0.5)
+            # nn.Dropout(0.5)
         )
 
         # 第七层是全连接层，输入是192， 输出是 10

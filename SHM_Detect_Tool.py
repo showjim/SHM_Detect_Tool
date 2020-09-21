@@ -149,7 +149,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
             # %% run training
-            num_epochs = 80  # 320
+            num_epochs = 50  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
