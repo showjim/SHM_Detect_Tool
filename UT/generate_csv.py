@@ -2,7 +2,7 @@
 import random
 
 char_list = ['*', '#', 'P', '.']#['0', '1'] #['*', '#', 'P', '.']
-with open('custom_SHM_data.csv', '+a') as buffer:
+with open('../custom_SHM_data.csv', '+a') as buffer:
     buffer.write('Fail' + ','*10)
     buffer.write('\n')
     for i in range(11):

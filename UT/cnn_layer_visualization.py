@@ -9,7 +9,7 @@ import torch
 from torch.optim import Adam
 from torchvision import models
 
-from misc_functions import preprocess_image, recreate_image, save_image
+from UT.misc_functions import preprocess_image, recreate_image, save_image
 
 
 class CNNLayerVisualization():
@@ -24,8 +24,8 @@ class CNNLayerVisualization():
         self.selected_filter = selected_filter
         self.conv_output = 0
         # Create the folder to export images if not exists
-        if not os.path.exists('../generated'):
-            os.makedirs('../generated')
+        if not os.path.exists('../../generated'):
+            os.makedirs('../../generated')
 
     def hook_layer(self):
         def hook_function(module, grad_in, grad_out):
