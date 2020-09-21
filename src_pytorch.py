@@ -80,10 +80,10 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 80, 0., 1.])
+    plt.axis([0, 60, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
-        adjust_learning_rate(optimizer, epoch, lr)
+        # adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
             y_hat = net(X)
