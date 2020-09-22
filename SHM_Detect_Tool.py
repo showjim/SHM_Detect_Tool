@@ -18,7 +18,7 @@ import src_pytorch as src
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.5'
+__version__ = 'SHM Detect Tool Beta V0.5.1'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -277,7 +277,7 @@ class Application(QWidget):
             print("Please close " + report_name.split('/')[-1])
 
 
-# 提取不同层输出的 主要代码
+# Hook class, to extract output of each layer
 class LayerActivations:
     features = None
 
