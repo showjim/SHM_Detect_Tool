@@ -52,12 +52,19 @@ class Application(QWidget):
         self.exam_cnn_button.setToolTip('Look into CNN')
         self.exam_cnn_button.clicked.connect(lambda: self.cnn_net('exam'))
 
+        self.exam_cnn_label = QLabel()
+        self.exam_cnn_label.setText('CNN Layer Index')
+        self.qLineEdit = QLineEdit()
+
         # Config layout
         layout = QGridLayout()
-        layout.addWidget(self.load_shm_button, 0, 1)
         layout.addWidget(self.train_net_button, 0, 0)
+        layout.addWidget(self.load_shm_button, 0, 1)
         layout.addWidget(self.analyse_shm_button, 0, 2)
-        layout.addWidget(self.exam_cnn_button, 0, 3)
+
+        layout.addWidget(self.exam_cnn_label, 1, 0)
+        layout.addWidget(self.qLineEdit, 1, 1)
+        layout.addWidget(self.exam_cnn_button, 1, 2)
         self.setLayout(layout)
 
     def load_shm(self):
@@ -136,7 +143,6 @@ class Application(QWidget):
         pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
         print('neural network architecture has ', pytorch_total_params, ' trainable parameters.')
 
-
         if mode == 'training':
             net.train()
             # %% load data
@@ -175,12 +181,13 @@ class Application(QWidget):
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
             src.show_shm_fig(X[0:45], titles[0:45])
+
         elif mode == 'test':
             # %% load state dict
             net.load_state_dict(torch.load('./stat_dict.pth'))
             # %% show result
             net.eval()
-            test_iter, raw_dict = self.convert_shm_to_tensor()
+            test_iter, raw_dict = self.convert_shm_to_tensor(-1)
             X, y = iter(test_iter).next()
             y_hat = net(X)
             y_hat[y_hat > 0.5] = 1
@@ -191,45 +198,52 @@ class Application(QWidget):
             src.show_shm_fig(X[0:45], titles[0:45])
             titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
             self.generate_shm_report_xlsx(titles, raw_dict)
+
         else:
             # %% load state dict
             net.load_state_dict(torch.load('./stat_dict.pth'))
             # %% show result
             net.eval()
-            test_iter, raw_dict = self.convert_shm_to_tensor()
+            test_iter, raw_dict = self.convert_shm_to_tensor(-1)
             # X, y = iter(test_iter).next()
             # y_hat = net(X)
             # y_hat[y_hat > 0.5] = 1
             # y_hat[y_hat <= 0.5] = 0
             # true_labels = y[0]
-
-            conv_out = LayerActivations(list(net._modules.items()), 0)  # 提出第 一个卷积层的输出
-            img = next(iter(test_iter))[0]
+            channel_count_list = [32, 16, 8, 4]
+            text = self.qLineEdit.text()
+            channel_index = int(text)
+            # Extract the layer
+            conv_out = LayerActivations(list(net._modules.items()), channel_index)
+            # [3:4] is to choose Index 4 shm
+            img = next(iter(test_iter))[0][3:4]
 
             # imshow(img)
             o = net(img)
             conv_out.remove()  #
-            act = conv_out.features  # act 即 第0层输出的特征
+            act = conv_out.features  # act is the feature of current layer
 
             # 可视化 输出
             fig = plt.figure()
             # fig.subplots_adjust(left=0, right=1, bottom=0, top=0.8, hspace=0, wspace=0.2)
-            total_count = 32
+            total_count = channel_count_list[channel_index]
             for i in range(total_count):
                 ax = fig.add_subplot(int(total_count / 4), 4, i + 1, xticks=[], yticks=[])
                 ax.imshow(act[0][i].detach().numpy(), cmap="gray")
 
             plt.show()
 
-
-    def convert_shm_to_tensor(self):
+    def convert_shm_to_tensor(self, batch_cnt):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
             num_workers = 4
 
         dataset = src.CsvDataset_Test('my_file.csv')
-        batch_size = dataset.__len__()  # len(self.result_dict)
+        if batch_cnt < 0:
+            batch_size = dataset.__len__()  # len(self.result_dict)
+        else:
+            batch_size = batch_cnt
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
         return test_iter, dataset.raw_dict
