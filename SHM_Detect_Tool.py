@@ -281,8 +281,11 @@ class Application(QWidget):
 class LayerActivations:
     features = None
 
-    def __init__(self, model, layer_num):
-        self.hook = model[layer_num][1].register_forward_hook(self.hook_fn)
+    def __init__(self, model, layer_num, backward=False):
+        if not backward:
+            self.hook = model[layer_num][1].register_forward_hook(self.hook_fn)
+        else:
+            self.hook = model[layer_num][1].register_backward_hook(self.hook_fn)
 
     def hook_fn(self, module, input, output):
         self.features = output
