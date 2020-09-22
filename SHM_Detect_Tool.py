@@ -10,6 +10,7 @@ import torch
 import sys
 import re
 import xlsxwriter
+import matplotlib.pyplot as plt
 
 sys.path.append("..")
 import src_pytorch as src
@@ -46,11 +47,17 @@ class Application(QWidget):
         self.analyse_shm_button.setToolTip('Analyse SHM Log')
         self.analyse_shm_button.clicked.connect(lambda: self.cnn_net('test'))
 
+        # Exam CNN
+        self.exam_cnn_button = QPushButton(qta.icon('mdi.kubernetes', color='blue'), 'Exam CNN')
+        self.exam_cnn_button.setToolTip('Look into CNN')
+        self.exam_cnn_button.clicked.connect(lambda: self.cnn_net('exam'))
+
         # Config layout
         layout = QGridLayout()
         layout.addWidget(self.load_shm_button, 0, 1)
         layout.addWidget(self.train_net_button, 0, 0)
         layout.addWidget(self.analyse_shm_button, 0, 2)
+        layout.addWidget(self.exam_cnn_button, 0, 3)
         self.setLayout(layout)
 
     def load_shm(self):
@@ -168,7 +175,7 @@ class Application(QWidget):
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
             src.show_shm_fig(X[0:45], titles[0:45])
-        else:
+        elif mode == 'test':
             # %% load state dict
             net.load_state_dict(torch.load('./stat_dict.pth'))
             # %% show result
@@ -184,6 +191,36 @@ class Application(QWidget):
             src.show_shm_fig(X[0:45], titles[0:45])
             titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
             self.generate_shm_report_xlsx(titles, raw_dict)
+        else:
+            # %% load state dict
+            net.load_state_dict(torch.load('./stat_dict.pth'))
+            # %% show result
+            net.eval()
+            test_iter, raw_dict = self.convert_shm_to_tensor()
+            # X, y = iter(test_iter).next()
+            # y_hat = net(X)
+            # y_hat[y_hat > 0.5] = 1
+            # y_hat[y_hat <= 0.5] = 0
+            # true_labels = y[0]
+
+            conv_out = LayerActivations(list(net._modules.items()), 0)  # 提出第 一个卷积层的输出
+            img = next(iter(test_iter))[0]
+
+            # imshow(img)
+            o = net(img)
+            conv_out.remove()  #
+            act = conv_out.features  # act 即 第0层输出的特征
+
+            # 可视化 输出
+            fig = plt.figure()
+            # fig.subplots_adjust(left=0, right=1, bottom=0, top=0.8, hspace=0, wspace=0.2)
+            total_count = 32
+            for i in range(total_count):
+                ax = fig.add_subplot(int(total_count / 4), 4, i + 1, xticks=[], yticks=[])
+                ax.imshow(act[0][i].detach().numpy(), cmap="gray")
+
+            plt.show()
+
 
     def convert_shm_to_tensor(self):
         if sys.platform.startswith('win'):
@@ -238,6 +275,20 @@ class Application(QWidget):
 
         except xlsxwriter.exceptions.FileCreateError:  # PermissionError:
             print("Please close " + report_name.split('/')[-1])
+
+
+# 提取不同层输出的 主要代码
+class LayerActivations:
+    features = None
+
+    def __init__(self, model, layer_num):
+        self.hook = model[layer_num][1].register_forward_hook(self.hook_fn)
+
+    def hook_fn(self, module, input, output):
+        self.features = output
+
+    def remove(self):
+        self.hook.remove()
 
 
 if __name__ == '__main__':
