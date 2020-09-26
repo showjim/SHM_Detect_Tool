@@ -55,7 +55,7 @@ class FlattenLayer(nn.Module):
 
 
 def evaluate_accuracy(data_iter, net):
-    # net.eval()
+    net.eval()
     # net.train()
     acc_sum, n, acc_sum_pf = 0.0, 0, 0.0
     for X, y in data_iter:
@@ -68,7 +68,7 @@ def evaluate_accuracy(data_iter, net):
         acc_sum += (check_result == 6).float().sum().item()
         acc_sum_pf += check_result_pf.float().sum().item()
         n += y.shape[0]
-    # net.train()
+    net.train()
     return acc_sum / n, acc_sum_pf / n
 
 
@@ -107,6 +107,7 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
             train_acc_sum += (check_result == 6).sum().item()
             n += y.shape[0]
         test_acc, test_acc_pf = evaluate_accuracy(test_iter, net)
+        optimizer.zero_grad()
         # plt.clf()
         plt.plot(epoch, test_acc, '.r')
         plt.plot(epoch, test_acc_pf, '+b')
@@ -400,7 +401,7 @@ class Inception(nn.Module):
 class AlexNet(nn.Module):
     def __init__(self):
         super().__init__()
-
+        self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
         # 第一层是 5x5 的卷积，输入的channels 是 3，输出的channels是 64,步长 1,没有 padding
         # Conv2d 的第一个参数为输入通道，第二个参数为输出通道，第三个参数为卷积核大小
         # ReLU 的参数为inplace，True表示直接对输入进行修改，False表示创建新创建一个对象进行修改
@@ -457,6 +458,7 @@ class AlexNet(nn.Module):
         )
 
     def forward(self, x):
+        x = self.input_norm(x)
         x = self.conv1(x)
         # x = self.max_pool1(x)
         x = self.conv2(x)

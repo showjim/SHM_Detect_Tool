@@ -159,7 +159,7 @@ class Application(QWidget):
             # %% optimise function
             lr = 0.01
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
 
             # %% run training
             num_epochs = 50  # 320
@@ -187,6 +187,7 @@ class Application(QWidget):
             net.load_state_dict(torch.load('./stat_dict.pth'))
             # %% show result
             net.eval()
+            # net.train()
             test_iter, raw_dict = self.convert_shm_to_tensor(-1)
             X, y = iter(test_iter).next()
             y_hat = net(X)
