@@ -401,7 +401,7 @@ class Inception(nn.Module):
 class AlexNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
+        # self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
         # 第一层是 5x5 的卷积，输入的channels 是 3，输出的channels是 64,步长 1,没有 padding
         # Conv2d 的第一个参数为输入通道，第二个参数为输出通道，第三个参数为卷积核大小
         # ReLU 的参数为inplace，True表示直接对输入进行修改，False表示创建新创建一个对象进行修改
@@ -458,7 +458,7 @@ class AlexNet(nn.Module):
         )
 
     def forward(self, x):
-        x = self.input_norm(x)
+        # x = self.input_norm(x)
         x = self.conv1(x)
         # x = self.max_pool1(x)
         x = self.conv2(x)
