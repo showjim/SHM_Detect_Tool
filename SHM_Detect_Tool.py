@@ -18,7 +18,7 @@ import src_pytorch as src
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 
-__version__ = 'SHM Detect Tool Beta V0.5.1'
+__version__ = 'SHM Detect Tool Beta V0.5.2'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -154,12 +154,12 @@ class Application(QWidget):
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.MultiLabelSoftMarginLoss() #BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
-            lr = 0.01
+            lr = 0.001
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0)
 
             # %% run training
             num_epochs = 100  # 320
