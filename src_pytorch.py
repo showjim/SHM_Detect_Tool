@@ -80,7 +80,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 100, 0., 1.])
+    plt.axis([0, 60, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
         # adjust_learning_rate(optimizer, epoch, lr)
@@ -402,7 +402,7 @@ class Inception(nn.Module):
 class AlexNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
+        # self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
         # 第一层是 5x5 的卷积，输入的channels 是 3，输出的channels是 64,步长 1,没有 padding
         # Conv2d 的第一个参数为输入通道，第二个参数为输出通道，第三个参数为卷积核大小
         # ReLU 的参数为inplace，True表示直接对输入进行修改，False表示创建新创建一个对象进行修改
@@ -455,12 +455,12 @@ class AlexNet(nn.Module):
         # 第七层是全连接层，输入是192， 输出是 10
         self.fc3 = nn.Sequential(
             nn.Linear(32, 6),
-            nn.BatchNorm1d(6),
+            # nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
 
     def forward(self, x):
-        x = self.input_norm(x)
+        # x = self.input_norm(x)
         x = self.conv1(x)
         # x = self.max_pool1(x)
         x = self.conv2(x)

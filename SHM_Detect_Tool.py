@@ -154,7 +154,7 @@ class Application(QWidget):
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.MultiLabelSoftMarginLoss() #BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.BCEWithLogitsLoss() #BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
             lr = 0.001
@@ -162,7 +162,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0)
 
             # %% run training
-            num_epochs = 100  # 320
+            num_epochs = 50  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -180,7 +180,7 @@ class Application(QWidget):
                 y_hat.detach().numpy(),
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            src.show_shm_fig(X[0:45], titles[0:45])
+            src.show_shm_fig(X[0:50], titles[0:50])
 
         elif mode == 'test':
             # %% load state dict
