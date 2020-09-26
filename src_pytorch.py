@@ -455,7 +455,7 @@ class AlexNet(nn.Module):
         # 第七层是全连接层，输入是192， 输出是 10
         self.fc3 = nn.Sequential(
             nn.Linear(32, 6),
-            # nn.BatchNorm1d(6),
+            nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
 
