@@ -159,7 +159,7 @@ class Application(QWidget):
             # %% optimise function
             lr = 0.001
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.001)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
 
             # %% run training
             num_epochs = 50  # 320
