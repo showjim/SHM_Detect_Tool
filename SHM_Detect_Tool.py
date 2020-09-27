@@ -224,7 +224,7 @@ class Application(QWidget):
             conv_out.remove()  #
             act = conv_out.features  # act is the feature of current layer
 
-            # 可视化 输出
+            # Visualization output
             fig = plt.figure()
             # fig.subplots_adjust(left=0, right=1, bottom=0, top=0.8, hspace=0, wspace=0.2)
             total_count = channel_count_list[channel_index]

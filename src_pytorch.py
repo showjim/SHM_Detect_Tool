@@ -402,41 +402,44 @@ class Inception(nn.Module):
 class AlexNet(nn.Module):
     def __init__(self):
         super().__init__()
+
+        # This is pre-norm layer, may do not need it
         # self.input_norm = nn.Sequential(nn.BatchNorm2d(1))
-        # 第一层是 5x5 的卷积，输入的channels 是 3，输出的channels是 64,步长 1,没有 padding
-        # Conv2d 的第一个参数为输入通道，第二个参数为输出通道，第三个参数为卷积核大小
-        # ReLU 的参数为inplace，True表示直接对输入进行修改，False表示创建新创建一个对象进行修改
+
+        # First ConV layer, 2x2 kernel, input is 1 channel, output 32 channels, setp 1, padding = 1
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, 32, 2, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU()
         )
-        # 第二层为 3x3 的池化，步长为2，没有padding
+
+        # Pooling layer 3x3, step 2, no padding, but not used in this case
         # self.max_pool1 = nn.MaxPool2d(3, 2)
 
-        # 第三层是 5x5 的卷积， 输入的channels 是64，输出的channels 是64，没有padding
+        # Second ConV layer, 3x3 kernel, input is 32 channels, output 16 channels, setp 1, padding = 1
         self.conv2 = nn.Sequential(
             nn.Conv2d(32, 16, 3, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU()
         )
 
+        # Third ConV layer, 3x3 kernel, input is 16 channels, output 8 channels, setp 1, padding = 1
         self.conv3 = nn.Sequential(
             nn.Conv2d(16, 8, 3, padding=1),
             nn.BatchNorm2d(8),
             nn.ReLU()
         )
-
+        # Fourth ConV layer, 3x3 kernel, input is 8 channels, output 4 channels, setp 1, no padding
         self.conv4 = nn.Sequential(
             nn.Conv2d(8, 4, 3, padding=0),
             nn.BatchNorm2d(4),
             nn.ReLU()
         )
 
-        # 第四层是 3x3 的池化， 步长是 2，没有padding
+        # Pooling layer 3x3, step 2, no padding, but not used in this case
         # self.max_pool2 = nn.MaxPool2d(3, 2)
 
-        # 第五层是全连接层，输入是 1204 ，输出是384
+        # Fifth FC layer, input is 10x10x4, output is 64
         self.fc1 = nn.Sequential(
             nn.Linear(10 * 10 * 4, 64),
             nn.BatchNorm1d(64),
@@ -444,7 +447,7 @@ class AlexNet(nn.Module):
             # nn.Dropout(0.2)
         )
 
-        # 第六层是全连接层，输入是 384， 输出是192
+        # Sixth FC layer, input is 64, output is 32
         self.fc2 = nn.Sequential(
             nn.Linear(64, 32),
             nn.BatchNorm1d(32),
@@ -452,7 +455,7 @@ class AlexNet(nn.Module):
             # nn.Dropout(0.5)
         )
 
-        # 第七层是全连接层，输入是192， 输出是 10
+        # Seventh FC layer, input is 32, output is 6
         self.fc3 = nn.Sequential(
             nn.Linear(32, 6),
             nn.BatchNorm1d(6),
