@@ -408,7 +408,7 @@ class AlexNet(nn.Module):
 
         # First ConV layer, 2x2 kernel, input is 1 channel, output 32 channels, setp 1, padding = 1
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, 2, padding=1),
+            nn.Conv2d(1, 32, 3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU()
         )
@@ -441,7 +441,7 @@ class AlexNet(nn.Module):
 
         # Fifth FC layer, input is 10x10x4, output is 64
         self.fc1 = nn.Sequential(
-            nn.Linear(10 * 10 * 4, 64),
+            nn.Linear(9 * 9 * 4, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
             # nn.Dropout(0.2)
