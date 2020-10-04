@@ -458,7 +458,7 @@ class AlexNet(nn.Module):
         # Seventh FC layer, input is 32, output is 6
         self.fc3 = nn.Sequential(
             nn.Linear(32, 6),
-            nn.BatchNorm1d(6),
+            # nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
 
