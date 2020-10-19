@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import math
 import torch
 from torch import nn
 import torchvision
@@ -441,7 +442,7 @@ class AlexNet(nn.Module):
 
         # Fifth FC layer, input is 10x10x4, output is 64
         self.fc1 = nn.Sequential(
-            nn.Linear(9 * 9 * 4, 64),
+            nn.Linear(4400, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
             # nn.Dropout(0.2)
@@ -457,12 +458,13 @@ class AlexNet(nn.Module):
 
         # Seventh FC layer, input is 32, output is 6
         self.fc3 = nn.Sequential(
-            nn.Linear(32, 6),
+            nn.Linear(44, 6),
             # nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
 
     def forward(self, x):
+        output_num = [4, 2, 1]
         # x = self.input_norm(x)
         x = self.conv1(x)
         # x = self.max_pool1(x)
@@ -471,10 +473,38 @@ class AlexNet(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
 
-        # 将图片矩阵拉平
-        x = x.view(x.shape[0], -1)
+        x = self.spatial_pyramid_pool(x, 100, [int(x.size(2)), int(x.size(3))], output_num)
 
-        x = self.fc1(x)
-        x = self.fc2(x)
+        # 将图片矩阵拉平
+        # x = x.view(x.shape[0], -1)
+
+        # x = self.fc1(x)
+        # x = self.fc2(x)
         x = self.fc3(x)
         return x
+
+    def spatial_pyramid_pool(self, previous_conv, num_sample, previous_conv_size, out_pool_size):
+        '''
+        previous_conv: a tensor vector of previous convolution layer
+        num_sample: an int number of image in the batch
+        previous_conv_size: an int vector [height, width] of the matrix features size of previous convolution layer
+        out_pool_size: a int vector of expected output size of max pooling layer
+
+        returns: a tensor vector with shape [1 x n] is the concentration of multi-level pooling
+        '''
+        # print(previous_conv.size())
+        for i in range(len(out_pool_size)):
+            # print(previous_conv_size)
+            h_wid = int(math.ceil(previous_conv_size[0] / out_pool_size[i]))
+            w_wid = int(math.ceil(previous_conv_size[1] / out_pool_size[i]))
+            h_pad = int((h_wid * out_pool_size[i] - previous_conv_size[0] + 1) / 2)
+            w_pad = int((w_wid * out_pool_size[i] - previous_conv_size[1] + 1) / 2)
+            maxpool = nn.MaxPool2d((h_wid, w_wid), stride=(h_wid, w_wid), padding=(0, 0))
+            x = maxpool(previous_conv)
+            if (i == 0):
+                spp = x.view(num_sample, -1)
+                # print("spp size:",spp.size())
+            else:
+                # print("size:",spp.size())
+                spp = torch.cat((spp, x.view(num_sample, -1)), 1)
+        return spp
