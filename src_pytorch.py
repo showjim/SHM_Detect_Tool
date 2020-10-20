@@ -154,7 +154,7 @@ def show_shm_fig(images, labels):
     plt.tight_layout()
     figs = figs.flatten()
     for f, img, lbl in zip(figs, images, labels):
-        f.imshow(img.view((11, 11)).numpy(), cmap='RdYlGn')
+        f.imshow(img.view((img.shape[1], img.shape[2])).numpy(), cmap='RdYlGn')
         f.set_title(lbl)
         f.axes.get_xaxis().set_visible(False)
         f.axes.get_yaxis().set_visible(False)
@@ -443,23 +443,23 @@ class AlexNet(nn.Module):
 
         # Fifth FC layer, input is 10x10x4, output is 64
         self.fc1 = nn.Sequential(
-            nn.Linear(4400, 64),
-            nn.BatchNorm1d(64),
+            nn.Linear(84, 42),
+            nn.BatchNorm1d(42),
             nn.ReLU(),
             # nn.Dropout(0.2)
         )
 
         # Sixth FC layer, input is 64, output is 32
         self.fc2 = nn.Sequential(
-            nn.Linear(64, 32),
-            nn.BatchNorm1d(32),
+            nn.Linear(42, 21),
+            nn.BatchNorm1d(21),
             nn.ReLU(),
             # nn.Dropout(0.5)
         )
 
         # Seventh FC layer, input is 32, output is 6
         self.fc3 = nn.Sequential(
-            nn.Linear(56, 6),
+            nn.Linear(21, 6),
             # nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
@@ -479,8 +479,8 @@ class AlexNet(nn.Module):
         # 将图片矩阵拉平
         # x = x.view(x.shape[0], -1)
 
-        # x = self.fc1(x)
-        # x = self.fc2(x)
+        x = self.fc1(x)
+        x = self.fc2(x)
         x = self.fc3(x)
         return x
 
@@ -500,11 +500,12 @@ class AlexNet(nn.Module):
             w_wid = int(math.ceil(previous_conv_size[1] / out_pool_size[i]))
             h_pad = int(math.floor((h_wid * out_pool_size[i] - previous_conv_size[0] + 1) / 2))
             w_pad = int(math.floor((w_wid * out_pool_size[i] - previous_conv_size[1] + 1) / 2))
-            h_pad = min(h_pad, math.floor(h_wid / 2))
-            w_pad = min(w_pad, math.floor(w_wid / 2))
-            maxpool = nn.MaxPool2d((h_wid, w_wid), stride=(h_wid, w_wid), padding=(h_pad, w_pad))
+            # h_pad = min(h_pad, math.floor(h_wid / 2))
+            # w_pad = min(w_pad, math.floor(w_wid / 2))
+            # maxpool = nn.AvgPool2d((h_wid, w_wid), stride=(h_wid, w_wid), padding=(h_pad, w_pad))
+            maxpool = nn.AdaptiveMaxPool2d((out_pool_size[i], out_pool_size[i]))
             x = maxpool(previous_conv)
-            if (i == 0):
+            if i == 0:
                 spp = x.view(num_sample, -1)
                 # spp = x.view(x.shape[0], -1)
                 # print("spp size:",spp.size())

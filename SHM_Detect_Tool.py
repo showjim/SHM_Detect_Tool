@@ -157,7 +157,7 @@ class Application(QWidget):
             loss = torch.nn.BCEWithLogitsLoss() #BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
-            lr = 0.003
+            lr = 0.001
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
 
@@ -196,7 +196,7 @@ class Application(QWidget):
             true_labels = y[0]
             pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            src.show_shm_fig(X[0:45], titles[0:45])
+            src.show_shm_fig(X[0:50], titles[0:50])
             titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
             self.generate_shm_report_xlsx(titles, raw_dict)
 
