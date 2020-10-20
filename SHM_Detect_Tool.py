@@ -217,7 +217,7 @@ class Application(QWidget):
             # Extract the layer
             conv_out = LayerActivations(list(net._modules.items()), channel_index)
             # [3:4] is to choose Index 4 shm
-            img = next(iter(test_iter))[0][3:4]
+            img = next(iter(test_iter))[0][0:1]
 
             # imshow(img)
             o = net(img)
