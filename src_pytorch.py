@@ -282,7 +282,8 @@ class CsvDataset_Test(data.Dataset):
         print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
         # y = y.reshape(y.shape[0], y.shape[1])
-        x = x.reshape(-1, 1, 11, 11)
+        # x = x.reshape(-1, 1, 11, 11)
+        x = x.reshape(-1, 1, np.size(x,1), np.size(x,2))
 
         self.X_train = torch.tensor(x, dtype=torch.float)
         self.Y_train = y #np.array(y) #torch.tensor(y)
@@ -458,7 +459,7 @@ class AlexNet(nn.Module):
 
         # Seventh FC layer, input is 32, output is 6
         self.fc3 = nn.Sequential(
-            nn.Linear(44, 6),
+            nn.Linear(56, 6),
             # nn.BatchNorm1d(6),
             # nn.Sigmoid()
         )
@@ -473,7 +474,7 @@ class AlexNet(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
 
-        x = self.spatial_pyramid_pool(x, 100, [int(x.size(2)), int(x.size(3))], output_num)
+        x = self.spatial_pyramid_pool(x, x.size(0), [int(x.size(2)), int(x.size(3))], output_num)
 
         # 将图片矩阵拉平
         # x = x.view(x.shape[0], -1)
@@ -497,14 +498,18 @@ class AlexNet(nn.Module):
             # print(previous_conv_size)
             h_wid = int(math.ceil(previous_conv_size[0] / out_pool_size[i]))
             w_wid = int(math.ceil(previous_conv_size[1] / out_pool_size[i]))
-            h_pad = int((h_wid * out_pool_size[i] - previous_conv_size[0] + 1) / 2)
-            w_pad = int((w_wid * out_pool_size[i] - previous_conv_size[1] + 1) / 2)
-            maxpool = nn.MaxPool2d((h_wid, w_wid), stride=(h_wid, w_wid), padding=(0, 0))
+            h_pad = int(math.floor((h_wid * out_pool_size[i] - previous_conv_size[0] + 1) / 2))
+            w_pad = int(math.floor((w_wid * out_pool_size[i] - previous_conv_size[1] + 1) / 2))
+            h_pad = min(h_pad, math.floor(h_wid / 2))
+            w_pad = min(w_pad, math.floor(w_wid / 2))
+            maxpool = nn.MaxPool2d((h_wid, w_wid), stride=(h_wid, w_wid), padding=(h_pad, w_pad))
             x = maxpool(previous_conv)
             if (i == 0):
                 spp = x.view(num_sample, -1)
+                # spp = x.view(x.shape[0], -1)
                 # print("spp size:",spp.size())
             else:
                 # print("size:",spp.size())
                 spp = torch.cat((spp, x.view(num_sample, -1)), 1)
+                # spp = torch.cat((spp, x.view(x.shape[0], -1)), 1)
         return spp
