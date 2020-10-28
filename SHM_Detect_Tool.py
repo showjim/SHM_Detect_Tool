@@ -154,10 +154,10 @@ class Application(QWidget):
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.BCEWithLogitsLoss() #BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.BCEWithLogitsLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
-            lr = 0.001
+            lr = 0.002
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
 
@@ -166,7 +166,7 @@ class Application(QWidget):
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
-            torch.save(net.state_dict(), './stat_dict.pth')
+            torch.save(net.state_dict(), './state_dict.pth')
 
             # %% show result
             net.eval()
@@ -184,7 +184,7 @@ class Application(QWidget):
 
         elif mode == 'test':
             # %% load state dict
-            net.load_state_dict(torch.load('./stat_dict.pth'))
+            net.load_state_dict(torch.load('./state_dict.pth'))
             # %% show result
             net.eval()
             # net.train()
@@ -202,7 +202,7 @@ class Application(QWidget):
 
         else:
             # %% load state dict
-            net.load_state_dict(torch.load('./stat_dict.pth'))
+            net.load_state_dict(torch.load('./state_dict.pth'))
             # %% show result
             net.eval()
             test_iter, raw_dict = self.convert_shm_to_tensor(-1)
