@@ -41,8 +41,9 @@ def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
         num_workers = 4
 
     dataset = CsvDataset(root)
-    train_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    train_dataset, test_dataset = data.random_split(dataset, (dataset.__len__() - 100, 100))
+    train_iter = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_iter = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     return train_iter, test_iter
 
@@ -81,7 +82,7 @@ def sgd(params, lr, batch_size):  # d2lzh_pytorch
 def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
     plt.ion()
     fig = plt.figure()
-    plt.axis([0, 60, 0., 1.])
+    plt.axis([0, 100, 0., 1.])
     plt.grid()
     for epoch in range(num_epochs):
         # adjust_learning_rate(optimizer, epoch, lr)
@@ -114,7 +115,7 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
         plt.plot(epoch, test_acc_pf, '+b')
         # plt.grid()
         # plt.plot(epoch, train_l_sum / n, 'xb')
-        plt.pause(0.0001)
+        plt.pause(0.001)
         print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f, test acc P/F %.3f' % (
             epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc, test_acc_pf))
     plt.grid()
