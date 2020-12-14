@@ -154,15 +154,15 @@ class Application(QWidget):
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.BCEWithLogitsLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
             lr = 0.002
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
 
             # %% run training
-            num_epochs = 100  # 320
+            num_epochs = 70  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -174,13 +174,13 @@ class Application(QWidget):
             X, y = iter(test_iter).next()
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
-            y_hat[y_hat > 0.5] = 1
-            y_hat[y_hat <= 0.5] = 0
+            y_hat[y_hat >= 0.5] = 1
+            y_hat[y_hat < 0.5] = 0
             pred_labels = src.get_custom_shm_labels(
                 y_hat.detach().numpy(),
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            src.show_shm_fig(X[0:50], titles[0:50])
+            src.show_shm_fig(X[0:100], titles[0:100])
 
         elif mode == 'test':
             # %% load state dict
@@ -191,8 +191,8 @@ class Application(QWidget):
             test_iter, raw_dict = self.convert_shm_to_tensor(-1)
             X, y = iter(test_iter).next()
             y_hat = net(X)
-            y_hat[y_hat > 0.5] = 1
-            y_hat[y_hat <= 0.5] = 0
+            y_hat[y_hat >= 0.5] = 1
+            y_hat[y_hat < 0.5] = 0
             true_labels = y[0]
             pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]

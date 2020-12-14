@@ -1546,7 +1546,7 @@ Fail-Vol,,,,,,,,,,
 .,.,.,P,P,P,P,P,P,P,P
 .,.,.,.,P,P,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
@@ -1558,7 +1558,7 @@ P,P,P,P,P,P,P,P,P,P,P
 .,.,.,.,P,P,P,P,P,P,P
 .,.,.,P,.,.,P,P,P,P,P
 .,.,.,.,.,.,.,.,.,.,.
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
@@ -1570,7 +1570,7 @@ P,.,.,P,P,P,P,P,P,P,P
 .,.,.,.,.,.,.,.,.,.,.
 .,.,.,P,.,.,.,.,.,.,.
 .,.,.,.,.,.,.,.,.,.,.
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
@@ -1762,7 +1762,7 @@ P,P,P,P,P,P,P,P,P,P,P
 .,.,.,.,.,P,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
 .,.,.,.,.,.,.,.,P,P,P
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
@@ -1774,7 +1774,7 @@ P,.,.,.,P,P,P,P,P,P,P
 .,.,.,.,.,P,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
 .,.,.,.,.,.,.,.,P,P,P
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
@@ -1786,7 +1786,7 @@ P,P,P,P,P,P,P,P,P,P,P
 .,.,.,.,P,P,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
 .,.,.,.,.,.,.,.,P,P,P
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
@@ -1798,7 +1798,7 @@ P,P,P,P,P,P,P,P,P,P,P
 .,.,.,.,.,P,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
 .,.,.,.,.,.,P,P,P,P,P
-Pass,,,,,,,,,,
+Fail-Hole,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
@@ -2578,7 +2578,7 @@ Fail-Vol,,,,,,,,,,
 .,.,.,.,.,.,P,P,P,P,P
 .,.,.,.,.,.,.,P,P,P,P
 .,.,.,.,.,.,.,.,.,.,P
-Fail-Vol,,,,,,,,,,
+Fail-Vol-Hole,,,,,,,,,,
 .,.,.,P,P,P,P,P,P,P,P
 .,.,.,P,P,P,P,P,P,P,P
 .,.,.,P,P,P,P,P,P,P,P
@@ -2794,7 +2794,7 @@ Fail-Vol,,,,,,,,,,
 .,.,.,.,.,.,P,P,P,P,P
 .,.,.,.,.,.,.,.,P,P,P
 .,.,.,.,.,.,.,.,.,.,P
-Fail-Vol,,,,,,,,,,
+Fail-Vol-Hole,,,,,,,,,,
 P,.,P,P,P,P,P,P,P,P,P
 .,.,P,P,P,P,P,P,P,P,P
 .,.,P,P,P,P,P,P,P,P,P
@@ -5062,7 +5062,7 @@ P,P,P,P,P,P,P,P,P,P,P
 .,.,.,.,.,P,P,P,P,P,P
 .,.,.,.,.,.,P,P,P,P,P
 .,.,.,.,.,.,.,.,.,.,.
-Pass,,,,,,,,,,
+Fail-Freq,,,,,,,,,,
 P,P,P,P,P,P,P,P,P,P,P
 .,P,P,P,P,P,P,P,P,P,P
 .,.,P,P,P,P,P,P,P,P,P
