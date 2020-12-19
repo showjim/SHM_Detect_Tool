@@ -63,8 +63,9 @@ def evaluate_accuracy(data_iter, net):
     for X, y in data_iter:
         # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
         y_hat = net(X)
-        y_hat[y_hat >= 0.5] = 1
-        y_hat[y_hat < 0.5] = 0
+        y_hat = reformat_output(y_hat)
+        # y_hat[y_hat >= 0.5] = 1
+        # y_hat[y_hat < 0.5] = 0
         check_result = torch.sum(y_hat == y, 1)
         check_result_pf = torch.logical_and(y_hat[:, 0] == y[:, 0], y_hat[:, 1] == y[:, 1])
         acc_sum += (check_result == 6).float().sum().item()
@@ -103,8 +104,9 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
                 optimizer.step()  # Set the parameters
             train_l_sum += l.item()
             # train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
-            y_hat[y_hat >= 0.5] = 1
-            y_hat[y_hat < 0.5] = 0
+
+            y_hat = reformat_output(y_hat)
+
             check_result = torch.sum(y_hat == y, 1)
             train_acc_sum += (check_result == 6).sum().item()
             n += y.shape[0]
@@ -121,6 +123,18 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
     plt.grid()
     plt.ioff()
     plt.grid()
+
+
+def reformat_output(y_hat):
+    a, _ = torch.max(y_hat[:, 0:2], 1)
+    y_hat[y_hat[:, 0] >= a, 0] = 1
+    y_hat[y_hat[:, 0] < a, 0] = 0
+    y_hat[y_hat[:, 1] >= a, 1] = 1
+    y_hat[y_hat[:, 1] < a, 1] = 0
+
+    y_hat[y_hat >= 0.5] = 1
+    y_hat[y_hat < 0.5] = 0
+    return y_hat
 
 
 def adjust_learning_rate(optimizer, epoch, lr):
