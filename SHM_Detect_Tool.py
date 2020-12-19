@@ -157,7 +157,7 @@ class Application(QWidget):
             loss = torch.nn.BCEWithLogitsLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
-            lr = 0.002
+            lr = 0.0015
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
 
@@ -174,8 +174,9 @@ class Application(QWidget):
             X, y = iter(test_iter).next()
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
-            y_hat[y_hat >= 0.5] = 1
-            y_hat[y_hat < 0.5] = 0
+            y_hat = src.reformat_output(y_hat)
+            # y_hat[y_hat >= 0.5] = 1
+            # y_hat[y_hat < 0.5] = 0
             pred_labels = src.get_custom_shm_labels(
                 y_hat.detach().numpy(),
                 'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
@@ -191,8 +192,9 @@ class Application(QWidget):
             test_iter, raw_dict = self.convert_shm_to_tensor(-1)
             X, y = iter(test_iter).next()
             y_hat = net(X)
-            y_hat[y_hat >= 0.5] = 1
-            y_hat[y_hat < 0.5] = 0
+            y_hat = src.reformat_output(y_hat)
+            # y_hat[y_hat >= 0.5] = 1
+            # y_hat[y_hat < 0.5] = 0
             true_labels = y[0]
             pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
