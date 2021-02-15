@@ -157,12 +157,12 @@ class Application(QWidget):
             loss = torch.nn.MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
-            lr = 0.002
+            lr = 0.0015
             # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0005)
+            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0002)
 
             # %% run training
-            num_epochs = 80  # 320
+            num_epochs = 100  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
