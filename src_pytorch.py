@@ -327,6 +327,75 @@ class CsvDataset_Test(data.Dataset):
         return tmp_np
 
 
+class CsvDataset_Test_Serial(data.Dataset):
+
+    def __init__(self, shmoo_body, shmoo_title):
+        """
+        Args:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        # self.data_count = 0
+        # x = np.zeros([1, 11, 11], dtype=float)
+        # y = [['Dummy']] #np.zeros([1], dtype=str)
+        # y = []
+        self.raw_dict = {}
+        self.result_dict = {'Fail': 0, 'Pass': 1, 'Vol': 2, 'Freq': 3, 'Marginal': 4, 'Hole': 5}
+
+        # self.csv_df = pd.read_csv(csv_file, iterator=True, header=None)
+        # # Read data in chunck
+        # go = True
+        # while go:
+        #     try:
+        #         tmp_y = [self.csv_df.get_chunk(1).values[0][0]]
+        #         tmp_x = self.csv_df.get_chunk(11).values
+        #         self.raw_dict[tmp_y[0]] = tmp_x.tolist()
+        #         tmp_x = self.convert_SHM_data(tmp_x)
+        #         tmp_x = tmp_x[None, :, :]
+        #
+        #         y.append(tmp_y)
+        #         if self.data_count == 0:
+        #             x = tmp_x
+        #         else:
+        #             x = np.vstack((x, tmp_x))
+        #         self.data_count += 1
+        #     except Exception as e:
+        #         print(type(e))
+        #         go = False
+        # print('The Training Data Set Count is: ', self.data_count)
+        # Reshape the data
+        # y = y.reshape(y.shape[0], y.shape[1])
+        # x = x.reshape(-1, 1, 11, 11)
+
+        tmp_x = np.asarray(shmoo_body)
+        x = self.convert_SHM_data(tmp_x)
+        x = x.reshape(-1, np.size(x, 0), np.size(x, 1))
+        x = x.reshape(-1, 1, np.size(x, 1), np.size(x, 2))
+        y = [shmoo_title]
+        self.X_train = torch.tensor(x, dtype=torch.float)
+        self.Y_train = y #np.array(y) #torch.tensor(y)
+        pass
+
+    def __len__(self):
+        # print len(self.landmarks_frame)
+        # return len(self.landmarks_frame)
+        return len(self.Y_train)
+
+    def __getitem__(self, idx):
+        return self.X_train[idx], self.Y_train[idx]
+
+    def convert_SHM_data(self, tmp_np):
+        tmp_np[tmp_np == 'P'] = 1.
+        tmp_np[tmp_np == 'p'] = 1.
+        tmp_np[tmp_np == '.'] = 0.
+        tmp_np[tmp_np == '*'] = 1.
+        tmp_np[tmp_np == '#'] = 0.
+        tmp_np = tmp_np.astype(float)
+        return tmp_np
+
+
 def corr2d(X, K):  #
     h, w = K.shape
     Y = torch.zeros((X.shape[0] - h + 1, X.shape[1] - w + 1))

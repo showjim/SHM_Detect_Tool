@@ -17,6 +17,8 @@ import src_pytorch as src
 
 from PyQt5.QtWidgets import *
 import qtawesome as qta
+import pandas as pd
+import numpy as np
 
 __version__ = 'SHM Detect Tool Beta V0.5.8'
 __author__ = 'zhouchao486@gmail.com'
@@ -189,7 +191,9 @@ class Application(QWidget):
             # %% show result
             net.eval()
             # net.train()
-            test_iter, raw_dict = self.convert_shm_to_tensor(-1)
+            shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
+            test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'S')
+            # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
             X, y = iter(test_iter).next()
             y_hat = net(X)
             y_hat = src.reformat_output(y_hat)
@@ -236,13 +240,15 @@ class Application(QWidget):
 
             plt.show()
 
-    def convert_shm_to_tensor(self, batch_cnt):
+    def convert_shm_to_tensor(self, batch_cnt, shmoo_body, shmoo_title, mode='P'):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
             num_workers = 4
-
-        dataset = src.CsvDataset_Test('my_file.csv')
+        if mode == 'P':
+            dataset = src.CsvDataset_Test('my_file.csv')
+        else:
+            dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
         if batch_cnt < 0:
             batch_size = dataset.__len__()  # len(self.result_dict)
         else:
@@ -250,6 +256,23 @@ class Application(QWidget):
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
         return test_iter, dataset.raw_dict
+
+    def read_shmoo_csv(self, csv_file):
+        tmpX = []
+        tmpY = []
+        X = []
+        Y = []
+        self.csv_df = pd.read_csv(csv_file, header=None)
+        for index, row in self.csv_df.iterrows():
+            if ':' in row[0]:
+                if len(tmpX) > 0:
+                    X.append(tmpX)
+                    Y.append(tmpY)
+                tmpY = row[0] #self.csv_df.iloc[0].dropna().to_list()
+                tmpX = []
+            else:
+                tmpX.append(row.dropna().to_list())
+        return X, Y
 
     def generate_shm_report_xlsx(self, titles, shms):
         report_name = 'report.xlsx'
