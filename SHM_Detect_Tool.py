@@ -276,6 +276,8 @@ class Application(QWidget):
                 tmpX = []
             else:
                 tmpX.append(row.dropna().to_list())
+        X.append(tmpX)
+        Y.append(tmpY)
         return X, Y
 
     def generate_shm_report_xlsx(self, titles, shms):
