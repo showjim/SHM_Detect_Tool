@@ -368,6 +368,7 @@ class CsvDataset_Test_Serial(data.Dataset):
         # Reshape the data
         # y = y.reshape(y.shape[0], y.shape[1])
         # x = x.reshape(-1, 1, 11, 11)
+        self.raw_dict[shmoo_title] = shmoo_body
 
         tmp_x = np.asarray(shmoo_body)
         x = self.convert_SHM_data(tmp_x)

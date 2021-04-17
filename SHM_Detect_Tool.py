@@ -191,19 +191,23 @@ class Application(QWidget):
             # %% show result
             net.eval()
             # net.train()
+            titles = []
+            raw_dict = {}
             shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
-            test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'S')
-            # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
-            X, y = iter(test_iter).next()
-            y_hat = net(X)
-            y_hat = src.reformat_output(y_hat)
-            # y_hat[y_hat >= 0.5] = 1
-            # y_hat[y_hat < 0.5] = 0
-            true_labels = y[0]
-            pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-            titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            src.show_shm_fig(X[0:50], titles[0:50])
-            titles = [true + ':' + pred for true, pred in zip(true_labels, pred_labels)]
+            for i in range(len(shmoo_title)):
+                test_iter, tmp_raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
+                # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
+                X, y = iter(test_iter).next()
+                y_hat = net(X)
+                y_hat = src.reformat_output(y_hat)
+                # y_hat[y_hat >= 0.5] = 1
+                # y_hat[y_hat < 0.5] = 0
+                true_labels = y[0]
+                pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
+                # titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+                # src.show_shm_fig(X[0:50], titles[0:50])
+                titles.append(true_labels + ':' + pred_labels[0]) #([true + ':' + pred for true, pred in zip(true_labels, pred_labels)])
+                raw_dict.update(tmp_raw_dict)
             self.generate_shm_report_xlsx(titles, raw_dict)
 
         else:
