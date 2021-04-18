@@ -215,7 +215,11 @@ class Application(QWidget):
             net.load_state_dict(torch.load('./state_dict.pth'))
             # %% show result
             net.eval()
-            test_iter, raw_dict = self.convert_shm_to_tensor(-1)
+
+            i = 0
+            shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
+            # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
+            test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
             # X, y = iter(test_iter).next()
             # y_hat = net(X)
             # y_hat[y_hat > 0.5] = 1
@@ -227,7 +231,8 @@ class Application(QWidget):
             # Extract the layer
             conv_out = LayerActivations(list(net._modules.items()), channel_index)
             # [3:4] is to choose Index 4 shm
-            img = next(iter(test_iter))[0][0:1]
+            # img = next(iter(test_iter))[0][0:1]
+            img, y = iter(test_iter).next()
 
             # imshow(img)
             o = net(img)
@@ -244,7 +249,7 @@ class Application(QWidget):
 
             plt.show()
 
-    def convert_shm_to_tensor(self, batch_cnt, shmoo_body, shmoo_title, mode='P'):
+    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=[], shmoo_title=[], mode='P'):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
