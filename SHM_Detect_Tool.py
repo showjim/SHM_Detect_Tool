@@ -192,8 +192,12 @@ class Application(QWidget):
             net.eval()
             # net.train()
             titles = []
+            titles_plot = []
             raw_dict = {}
             shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
+            _, figs = plt.subplots(5, 10, figsize=(12, 8))
+            plt.tight_layout()
+            figs = figs.flatten()
             for i in range(len(shmoo_title)):
                 test_iter, tmp_raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
                 # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
@@ -204,11 +208,17 @@ class Application(QWidget):
                 # y_hat[y_hat < 0.5] = 0
                 true_labels = y[0]
                 pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-                # titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+                titles_plot.append(true_labels + '\n' + pred_labels[0]) # = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
                 # src.show_shm_fig(X[0:50], titles[0:50])
                 titles.append(true_labels + ':' + pred_labels[0]) #([true + ':' + pred for true, pred in zip(true_labels, pred_labels)])
                 raw_dict.update(tmp_raw_dict)
+                if i < 50:
+                    figs[i].imshow(X[0].view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
+                    figs[i].set_title(titles_plot)
+                    figs[i].axes.get_xaxis().set_visible(False)
+                    figs[i].axes.get_yaxis().set_visible(False)
             self.generate_shm_report_xlsx(titles, raw_dict)
+            plt.show()
 
         else:
             # %% load state dict
