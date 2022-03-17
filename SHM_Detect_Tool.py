@@ -29,6 +29,7 @@ class Application(QWidget):
         super().__init__()
         self.setupUI()
         self.result_dict = {}
+        self.filename = ''
 
     def setupUI(self):
         # Title and window size
@@ -79,6 +80,7 @@ class Application(QWidget):
         else:
             if len(filepath[0]) > 1:
                 filename = filepath[0]
+                self.filename = filename
                 self.read_shm_log(filename)
             else:
                 pass
@@ -89,7 +91,7 @@ class Application(QWidget):
         with open(filename, 'r') as buffer:
             while True:
                 line = buffer.readline()
-                if line.startswith('FC_') and line.endswith('_SHM:\n'):
+                if line.endswith('_SHM:\n'):#line.startswith('FC_') and line.endswith('_SHM:\n'):
                     cur_instance = line[0:-1]
                     line = buffer.readline()
                     if line.startswith('Site:'):
@@ -115,7 +117,7 @@ class Application(QWidget):
                 if len(line) == 0:
                     break
 
-        with open('my_file.csv', 'w') as f:
+        with open(self.filename + '_tmp_file.csv', 'w') as f:
             for key, values in self.result_dict.items():
                 f.write('{0}\n'.format(key))
                 for val in values:
@@ -194,7 +196,7 @@ class Application(QWidget):
             titles = []
             titles_plot = []
             raw_dict = {}
-            shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
+            shmoo_body, shmoo_title = self.read_shmoo_csv(self.filename + '_tmp_file.csv') #'my_file.csv')
             _, figs = plt.subplots(5, 10, figsize=(12, 8))
             plt.tight_layout()
             figs = figs.flatten()
@@ -217,7 +219,7 @@ class Application(QWidget):
                     figs[i].set_title(titles_plot)
                     figs[i].axes.get_xaxis().set_visible(False)
                     figs[i].axes.get_yaxis().set_visible(False)
-            self.generate_shm_report_xlsx(titles, raw_dict)
+            self.generate_shm_report_xlsx(titles, raw_dict, self.filename)
             plt.show()
 
         else:
@@ -227,7 +229,7 @@ class Application(QWidget):
             net.eval()
 
             i = 0
-            shmoo_body, shmoo_title = self.read_shmoo_csv('my_file.csv')
+            shmoo_body, shmoo_title = self.read_shmoo_csv(self.filename + '_tmp_file.csv')#'my_file.csv')
             # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
             test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
             # X, y = iter(test_iter).next()
@@ -265,7 +267,7 @@ class Application(QWidget):
         else:
             num_workers = 4
         if mode == 'P':
-            dataset = src.CsvDataset_Test('my_file.csv')
+            dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')#'my_file.csv')
         else:
             dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
         if batch_cnt < 0:
@@ -295,8 +297,8 @@ class Application(QWidget):
         Y.append(tmpY)
         return X, Y
 
-    def generate_shm_report_xlsx(self, titles, shms):
-        report_name = 'report.xlsx'
+    def generate_shm_report_xlsx(self, titles, shms, filename):
+        report_name = filename + '_report.xlsx'
         # In case someone has the file open
         try:
             # Create a workbook and add a  worksheet.
