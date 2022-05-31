@@ -1,2 +1,4 @@
 # SHM_Detect_Tool
-A tool used to detect abnormal SHM result based on PyTorch
+
+Tool to analyse SHMOO datalog result based on PyTorch.
+![img](/img/Picture1.png "img")
