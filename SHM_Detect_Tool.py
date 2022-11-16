@@ -93,8 +93,9 @@ class Application(QWidget):
                 line = buffer.readline()
                 if line.endswith('_SHM:\n'):#line.startswith('FC_') and line.endswith('_SHM:\n'):
                     cur_instance = line[0:-1]
-                    line = buffer.readline()
-                    if line.startswith('Site:'):
+                    for i in range(8):
+                        line = buffer.readline()
+                    if line.startswith('DEVICE_NUMBER:'):#('Site:'):
                         res = re.search('\d+', line)
                         cur_site_index = res.group() + ',' * 10
                         self.result_dict[cur_instance + cur_site_index] = []
@@ -103,7 +104,7 @@ class Application(QWidget):
 
                 else:
                     if new_shm_flag:
-                        res = re.search('(\t(P|\*|\.|#))+', line)
+                        res = re.search('(\s(P|\*|\.|#))+', line)
                         if (res is not None) and shm_start_flag == False:
                             shm_start_flag = True
                         elif (res is None) and shm_start_flag == True:
@@ -111,7 +112,7 @@ class Application(QWidget):
                             shm_start_flag = False
 
                         if shm_start_flag:
-                            tmp = res.group().split('\t')[1:]
+                            tmp = res.string.split()[1:]
                             self.result_dict[cur_instance + cur_site_index].append(tmp)
 
                 if len(line) == 0:
