@@ -176,7 +176,7 @@ class Application(QWidget):
             # %% show result
             net.eval()
             # print(net.training)
-            X, y = iter(test_iter).next()
+            X, y = iter(test_iter).__next__()# .next()
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
             y_hat = src.reformat_output(y_hat)
