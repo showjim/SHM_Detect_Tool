@@ -20,7 +20,7 @@ import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.5.8'
+__version__ = 'SHM Detect Tool Beta V0.6.1'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -35,7 +35,7 @@ class Application(QWidget):
     def setupUI(self):
         # Title and window size
         self.setWindowTitle(__version__)
-        self.resize(200, 100)
+        self.resize(400, 200)
         # Load SHM
         self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Load SHM Log')
         self.load_shm_button.setToolTip('Load SHM log')
@@ -60,16 +60,41 @@ class Application(QWidget):
         self.exam_cnn_label.setText('CNN Layer Index')
         self.qLineEdit = QLineEdit()
 
-        # Config layout
+        # Layout
+        layout = QGridLayout()
+        self.setLayout(layout)
+
+        # Tabs
+        tabs = QTabWidget(self)
+        self.train_cnn = QWidget()
+        self.convt_shm = QWidget()
+        self.detect_shm = QWidget()
+        self.tab_train_cnn()
+        self.tab_convt_shm()
+        self.tab_detect_shm()
+        tabs.addTab(self.train_cnn, 'Train CNN')
+        tabs.addTab(self.convt_shm, 'Convert Shmoo')
+        tabs.addTab(self.detect_shm, 'Detect Shmoo')
+        layout.addWidget(tabs, 0, 0)
+
+    def tab_train_cnn(self):
         layout = QGridLayout()
         layout.addWidget(self.train_net_button, 0, 0)
-        layout.addWidget(self.load_shm_button, 0, 1)
-        layout.addWidget(self.analyse_shm_button, 0, 2)
+        self.train_cnn.setLayout(layout)
+
+    def tab_convt_shm(self):
+        layout = QGridLayout()
+        layout.addWidget(self.load_shm_button, 0, 0)
+        self.convt_shm.setLayout(layout)
+
+    def tab_detect_shm(self):
+        layout = QGridLayout()
+        layout.addWidget(self.analyse_shm_button, 0, 0, 1, 3)
 
         layout.addWidget(self.exam_cnn_label, 1, 0)
         layout.addWidget(self.qLineEdit, 1, 1)
         layout.addWidget(self.exam_cnn_button, 1, 2)
-        self.setLayout(layout)
+        self.detect_shm.setLayout(layout)
 
     def load_shm(self):
         filterboi = 'TXT log (*.txt)'
