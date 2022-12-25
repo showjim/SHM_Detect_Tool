@@ -86,34 +86,35 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
+        keyword_site = 'Site:' #'DEVICE_NUMBER:'
+        keyword_item = '_SHM:' #'TestSuite = '
         new_shm_flag = False
+        new_site_flag = False
         shm_start_flag = False
         with open(filename, 'r') as buffer:
             while True:
                 line = buffer.readline()
-                if line.endswith('_SHM:\n'):#line.startswith('FC_') and line.endswith('_SHM:\n'):
+                if keyword_item in line:#line.startswith('FC_') and line.endswith('_SHM:\n'):
                     cur_instance = line[0:-1]
-                    for i in range(8):
-                        line = buffer.readline()
-                    if line.startswith('DEVICE_NUMBER:'):#('Site:'):
-                        res = re.search('\d+', line)
-                        cur_site_index = res.group() + ',' * 10
-                        self.result_dict[cur_instance + cur_site_index] = []
-                        new_shm_flag = True
+                    new_shm_flag = True
+                    new_site_flag = False
+                if line.startswith(keyword_site) and new_shm_flag == True:#('Site:'):
+                    res = re.search('\d+', line)
+                    cur_site_index = res.group() + ',' * 10
+                    self.result_dict[cur_instance + cur_site_index] = []
+                    new_site_flag = True
+
+                if new_shm_flag and new_site_flag:
+                    res = re.search('(\s(P|\*|\.|#))+', line)
+                    if (res is not None) and shm_start_flag == False:
+                        shm_start_flag = True
+                    elif (res is None) and shm_start_flag == True:
+                        new_shm_flag = False
                         shm_start_flag = False
 
-                else:
-                    if new_shm_flag:
-                        res = re.search('(\s(P|\*|\.|#))+', line)
-                        if (res is not None) and shm_start_flag == False:
-                            shm_start_flag = True
-                        elif (res is None) and shm_start_flag == True:
-                            new_shm_flag = False
-                            shm_start_flag = False
-
-                        if shm_start_flag:
-                            tmp = res.string.split()[1:]
-                            self.result_dict[cur_instance + cur_site_index].append(tmp)
+                    if shm_start_flag:
+                        tmp = res.string.split()[1:]
+                        self.result_dict[cur_instance + cur_site_index].append(tmp)
 
                 if len(line) == 0:
                     break
@@ -176,7 +177,7 @@ class Application(QWidget):
             # %% show result
             net.eval()
             # print(net.training)
-            X, y = iter(test_iter).__next__()# .next()
+            X, y = next(iter(test_iter)) #.__next__()# .next()
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
             y_hat = src.reformat_output(y_hat)
@@ -204,7 +205,7 @@ class Application(QWidget):
             for i in range(len(shmoo_title)):
                 test_iter, tmp_raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
                 # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
-                X, y = iter(test_iter).next()
+                X, y = next(iter(test_iter)) #.next()
                 y_hat = net(X)
                 y_hat = src.reformat_output(y_hat)
                 # y_hat[y_hat >= 0.5] = 1
@@ -245,7 +246,7 @@ class Application(QWidget):
             conv_out = LayerActivations(list(net._modules.items()), channel_index)
             # [3:4] is to choose Index 4 shm
             # img = next(iter(test_iter))[0][0:1]
-            img, y = iter(test_iter).next()
+            img, y = next(iter(test_iter))# next()
 
             # imshow(img)
             o = net(img)
@@ -266,7 +267,7 @@ class Application(QWidget):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
-            num_workers = 4
+            num_workers = 0 #4
         if mode == 'P':
             dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')#'my_file.csv')
         else:

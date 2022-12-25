@@ -38,7 +38,7 @@ def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
     if sys.platform.startswith('win'):
         num_workers = 0  # 0
     else:
-        num_workers = 4
+        num_workers = 0
 
     dataset = CsvDataset(root)
     train_dataset, test_dataset = data.random_split(dataset, (dataset.__len__() - 100, 100))
