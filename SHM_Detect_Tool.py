@@ -29,7 +29,6 @@ class Application(QWidget):
         super().__init__()
         self.setupUI()
         self.result_dict = {}
-        self.result_axis_dict = {}
         self.filename = ''
 
     def setupUI(self):
@@ -37,8 +36,8 @@ class Application(QWidget):
         self.setWindowTitle(__version__)
         self.resize(400, 200)
         # Load SHM
-        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Load SHM Log')
-        self.load_shm_button.setToolTip('Load SHM log')
+        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Load Shmoo Log')
+        self.load_shm_button.setToolTip('Load Shmoo log')
         self.load_shm_button.clicked.connect(self.load_shm)
 
         # Train net
@@ -47,8 +46,8 @@ class Application(QWidget):
         self.train_net_button.clicked.connect(lambda: self.cnn_net('training'))
 
         # Analyse
-        self.analyse_shm_button = QPushButton(qta.icon('mdi.test-tube', color='blue'), 'Analyse SHM Log')
-        self.analyse_shm_button.setToolTip('Analyse SHM Log')
+        self.analyse_shm_button = QPushButton(qta.icon('mdi.test-tube', color='blue'), 'Analyse Shmoo Log')
+        self.analyse_shm_button.setToolTip('Analyse Shmoo Log')
         self.analyse_shm_button.clicked.connect(lambda: self.cnn_net('test'))
 
         # Exam CNN
@@ -135,7 +134,6 @@ class Application(QWidget):
                 if keyword_start in line and new_shm_flag == True and new_site_flag == True:
                     shm_start_flag = True
                     self.result_dict[cur_instance + cur_site_index] = []
-                    # self.result_axis_dict[cur_instance + cur_site_index] = {'x':[keyword_start], 'y':[]}
                     continue
 
                 if new_shm_flag and new_site_flag and shm_start_flag:
