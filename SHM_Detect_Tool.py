@@ -29,6 +29,7 @@ class Application(QWidget):
         super().__init__()
         self.setupUI()
         self.result_dict = {}
+        self.result_axis_dict = {}
         self.filename = ''
 
     def setupUI(self):
@@ -88,9 +89,11 @@ class Application(QWidget):
     def read_shm_log(self, filename):
         keyword_site = 'Site:' #'DEVICE_NUMBER:'
         keyword_item = '_SHM:' #'TestSuite = '
+        keyword_start = 'Tcoef(%)'
         new_shm_flag = False
         new_site_flag = False
         shm_start_flag = False
+        shm_body_found_flag = False
         with open(filename, 'r') as buffer:
             while True:
                 line = buffer.readline()
@@ -98,23 +101,35 @@ class Application(QWidget):
                     cur_instance = line[0:-1]
                     new_shm_flag = True
                     new_site_flag = False
+                    continue
                 if line.startswith(keyword_site) and new_shm_flag == True:#('Site:'):
                     res = re.search('\d+', line)
                     cur_site_index = res.group() + ',' * 10
-                    self.result_dict[cur_instance + cur_site_index] = []
                     new_site_flag = True
+                    continue
+                if keyword_start in line and new_shm_flag == True and new_site_flag == True:
+                    shm_start_flag = True
+                    self.result_dict[cur_instance + cur_site_index] = []
+                    self.result_axis_dict[cur_instance + cur_site_index] = {'x':[keyword_start], 'y':[]}
+                    continue
 
-                if new_shm_flag and new_site_flag:
+                if new_shm_flag and new_site_flag and shm_start_flag:
                     res = re.search('(\s(P|\*|\.|#))+', line)
-                    if (res is not None) and shm_start_flag == False:
-                        shm_start_flag = True
-                    elif (res is None) and shm_start_flag == True:
+                    if (res is not None) and shm_body_found_flag == False:
+                        shm_body_found_flag = True
+                    elif (res is None) and shm_body_found_flag == True:
                         new_shm_flag = False
+                        new_site_flag = False
                         shm_start_flag = False
+                        shm_body_found_flag = False
+                        # need add Y-axis here
+                        y_list = line.split()
+                        self.result_axis_dict[cur_instance + cur_site_index]['y'] = y_list
 
-                    if shm_start_flag:
-                        tmp = res.string.split()[1:]
-                        self.result_dict[cur_instance + cur_site_index].append(tmp)
+                    if shm_body_found_flag:
+                        tmp = res.string.split()
+                        self.result_dict[cur_instance + cur_site_index].append(tmp[1:])
+                        self.result_axis_dict[cur_instance + cur_site_index]['x'].append(tmp[0])
 
                 if len(line) == 0:
                     break
