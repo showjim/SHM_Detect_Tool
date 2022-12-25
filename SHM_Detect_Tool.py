@@ -104,13 +104,13 @@ class Application(QWidget):
                     continue
                 if line.startswith(keyword_site) and new_shm_flag == True:#('Site:'):
                     res = re.search('\d+', line)
-                    cur_site_index = res.group() + ',' * 10
+                    cur_site_index = res.group() + ',' * 12
                     new_site_flag = True
                     continue
                 if keyword_start in line and new_shm_flag == True and new_site_flag == True:
                     shm_start_flag = True
                     self.result_dict[cur_instance + cur_site_index] = []
-                    self.result_axis_dict[cur_instance + cur_site_index] = {'x':[keyword_start], 'y':[]}
+                    # self.result_axis_dict[cur_instance + cur_site_index] = {'x':[keyword_start], 'y':[]}
                     continue
 
                 if new_shm_flag and new_site_flag and shm_start_flag:
@@ -123,13 +123,12 @@ class Application(QWidget):
                         shm_start_flag = False
                         shm_body_found_flag = False
                         # need add Y-axis here
-                        y_list = line.split()
-                        self.result_axis_dict[cur_instance + cur_site_index]['y'] = y_list
+                        x_list = line.split()
+                        self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
 
                     if shm_body_found_flag:
                         tmp = res.string.split()
-                        self.result_dict[cur_instance + cur_site_index].append(tmp[1:])
-                        self.result_axis_dict[cur_instance + cur_site_index]['x'].append(tmp[0])
+                        self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
 
                 if len(line) == 0:
                     break
@@ -213,7 +212,7 @@ class Application(QWidget):
             titles = []
             titles_plot = []
             raw_dict = {}
-            shmoo_body, shmoo_title = self.read_shmoo_csv(self.filename + '_tmp_file.csv') #'my_file.csv')
+            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename + '_tmp_file.csv') #'my_file.csv')
             _, figs = plt.subplots(5, 10, figsize=(12, 8))
             plt.tight_layout()
             figs = figs.flatten()
@@ -236,7 +235,7 @@ class Application(QWidget):
                     figs[i].set_title(titles_plot)
                     figs[i].axes.get_xaxis().set_visible(False)
                     figs[i].axes.get_yaxis().set_visible(False)
-            self.generate_shm_report_xlsx(titles, raw_dict, self.filename)
+            self.generate_shm_report_xlsx(titles, shmoo_dict, self.filename)
             plt.show()
 
         else:
@@ -246,7 +245,7 @@ class Application(QWidget):
             net.eval()
 
             i = 0
-            shmoo_body, shmoo_title = self.read_shmoo_csv(self.filename + '_tmp_file.csv')#'my_file.csv')
+            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename + '_tmp_file.csv')#'my_file.csv')
             # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
             test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
             # X, y = iter(test_iter).next()
@@ -298,21 +297,31 @@ class Application(QWidget):
     def read_shmoo_csv(self, csv_file):
         tmpX = []
         tmpY = []
+        tmpZ = []
         X = []
         Y = []
+        Z = {}
         self.csv_df = pd.read_csv(csv_file, header=None)
         for index, row in self.csv_df.iterrows():
             if ':' in row[0]:
                 if len(tmpX) > 0:
                     X.append(tmpX)
                     Y.append(tmpY)
+                    Z[tmpY] = tmpZ
                 tmpY = row[0] #self.csv_df.iloc[0].dropna().to_list()
                 tmpX = []
+                tmpZ = []
+            elif not("P" in row.dropna().to_list()) and not("." in row.dropna().to_list()):
+                #skip
+                tmpZ.append(row.dropna().to_list())
+                continue
             else:
-                tmpX.append(row.dropna().to_list())
+                tmpX.append(row.dropna().to_list()[1:])
+                tmpZ.append(row.dropna().to_list())
         X.append(tmpX)
         Y.append(tmpY)
-        return X, Y
+        Z[tmpY] = tmpZ
+        return X, Y, Z
 
     def generate_shm_report_xlsx(self, titles, shms, filename):
         report_name = filename + '_report.xlsx'
