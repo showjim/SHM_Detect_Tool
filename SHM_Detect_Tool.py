@@ -20,7 +20,7 @@ import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.6.1'
+__version__ = 'SHM Detect Tool Beta V0.6.2'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -34,10 +34,15 @@ class Application(QWidget):
     def setupUI(self):
         # Title and window size
         self.setWindowTitle(__version__)
-        self.resize(400, 200)
+        self.resize(500, 200)
+
+        # Buttons
+        self.status_text = QLabel()
+        self.status_text.setText('Welcome!')
+
         # Load SHM
-        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Load Shmoo Log')
-        self.load_shm_button.setToolTip('Load Shmoo log')
+        self.load_shm_button = QPushButton(qta.icon('mdi.folder-open', color='blue'), 'Convert Shmoo to CSV')
+        self.load_shm_button.setToolTip('Convert Shmoo log to CSV')
         self.load_shm_button.clicked.connect(self.load_shm)
 
         # Train net
@@ -46,6 +51,9 @@ class Application(QWidget):
         self.train_net_button.clicked.connect(lambda: self.cnn_net('training'))
 
         # Analyse
+        self.analyse_shm_path_let = QLineEdit()
+        self.analyse_shm_path_btn = QPushButton('Select CSV Shmoo File...')
+        self.analyse_shm_path_btn.clicked.connect(self.get_csv_shm_path)
         self.analyse_shm_button = QPushButton(qta.icon('mdi.test-tube', color='blue'), 'Analyse Shmoo Log')
         self.analyse_shm_button.setToolTip('Analyse Shmoo Log')
         self.analyse_shm_button.clicked.connect(lambda: self.cnn_net('test'))
@@ -74,7 +82,9 @@ class Application(QWidget):
         tabs.addTab(self.train_cnn, 'Train CNN')
         tabs.addTab(self.convt_shm, 'Convert Shmoo')
         tabs.addTab(self.detect_shm, 'Detect Shmoo')
+
         layout.addWidget(tabs, 0, 0)
+        layout.addWidget(self.status_text, 1, 0)
 
     def tab_train_cnn(self):
         layout = QGridLayout()
@@ -83,17 +93,30 @@ class Application(QWidget):
 
     def tab_convt_shm(self):
         layout = QGridLayout()
+
         layout.addWidget(self.load_shm_button, 0, 0)
         self.convt_shm.setLayout(layout)
 
     def tab_detect_shm(self):
         layout = QGridLayout()
-        layout.addWidget(self.analyse_shm_button, 0, 0, 1, 3)
+        layout.addWidget(self.analyse_shm_path_let, 0, 0, 1, 6)
+        layout.addWidget(self.analyse_shm_path_btn, 0, 6, 1, 2)
+        layout.addWidget(self.analyse_shm_button, 0, 8, 1, 2)
 
-        layout.addWidget(self.exam_cnn_label, 1, 0)
-        layout.addWidget(self.qLineEdit, 1, 1)
-        layout.addWidget(self.exam_cnn_button, 1, 2)
+        layout.addWidget(self.exam_cnn_label, 2, 0, 1, 4)
+        layout.addWidget(self.qLineEdit, 2, 4, 1, 4)
+        layout.addWidget(self.exam_cnn_button, 2, 8, 1, 2)
         self.detect_shm.setLayout(layout)
+
+    def get_csv_shm_path(self):
+        filterboi = 'csv File (*.csv)'
+        filepath = QFileDialog.getOpenFileName(caption='Select CSV Shmoo File', filter=filterboi)
+        if filepath[0] == '':
+            self.status_text.setText('Please select a file')
+        else:
+            self.status_text.update()
+            self.status_text.setText('Converting...')
+            self.analyse_shm_path_let.setText(filepath[0])
 
     def load_shm(self):
         filterboi = 'TXT log (*.txt)'
@@ -232,10 +255,11 @@ class Application(QWidget):
             # %% show result
             net.eval()
             # net.train()
+            filename = self.analyse_shm_path_let.text()#self.filename + '_tmp_file.csv'
             titles = []
             titles_plot = []
             raw_dict = {}
-            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename + '_tmp_file.csv') #'my_file.csv')
+            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(filename) # #'my_file.csv')
             _, figs = plt.subplots(5, 10, figsize=(12, 8))
             plt.tight_layout()
             figs = figs.flatten()
@@ -258,7 +282,7 @@ class Application(QWidget):
                     figs[i].set_title(titles_plot)
                     figs[i].axes.get_xaxis().set_visible(False)
                     figs[i].axes.get_yaxis().set_visible(False)
-            self.generate_shm_report_xlsx(titles, shmoo_dict, self.filename)
+            self.generate_shm_report_xlsx(titles, shmoo_dict, filename)
             plt.show()
 
         else:
