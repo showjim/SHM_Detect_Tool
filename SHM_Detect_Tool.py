@@ -200,8 +200,13 @@ class Application(QWidget):
         # for params in net.parameters():
         #     init.normal_(params, mean=0, std=0.01)
 
+        # Check that MPS is available
+        device = "mps" if torch.backends.mps.is_available() else "cpu"
+        print(f"Using device: {device}")
+
         # net = d2l.LeNet()
         net = src.AlexNet()
+        # net.to(device)
 
         # print parameters count
         pytorch_total_params = sum(p.numel() for p in net.parameters())
@@ -216,11 +221,10 @@ class Application(QWidget):
             filename = r'custom_SHM_data.csv'
             train_iter, test_iter = src.load_custom_shm_data(batch_size,
                                                              filename)  # d2l.load_data_fashion_mnist(batch_size)
-
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.MultiLabelSoftMarginLoss() #MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
             lr = 0.0014
@@ -228,7 +232,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0004)
 
             # %% run training
-            num_epochs = 100  # 320
+            num_epochs = 50 #100  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -238,6 +242,7 @@ class Application(QWidget):
             net.eval()
             # print(net.training)
             X, y = next(iter(test_iter)) #.__next__()# .next()
+            # X = X.to(device)
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
             y_hat = src.reformat_output(y_hat)

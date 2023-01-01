@@ -11,6 +11,7 @@ import numpy as np
 import torch.utils.data as data
 import torch.nn.functional as F
 
+device = "mps" if torch.backends.mps.is_available() else "cpu"
 
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNIST'):
     """Download the fashion mnist dataset and then load into memory."""
@@ -61,6 +62,8 @@ def evaluate_accuracy(data_iter, net):
     # net.train()
     acc_sum, n, acc_sum_pf = 0.0, 0, 0.0
     for X, y in data_iter:
+        # X = X.to(device)
+        # y = y.to(device)
         # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
         y_hat = net(X)
         y_hat = reformat_output(y_hat)
@@ -89,6 +92,8 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
         # adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
+            # X = X.to(device)
+            # y = y.to(device)
             y_hat = net(X)
             l = loss(y_hat, y)  # .sum()
             # Reset the grad
