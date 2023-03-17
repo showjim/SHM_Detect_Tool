@@ -116,7 +116,9 @@ class Application(QWidget):
         else:
             self.status_text.update()
             self.status_text.setText('Converting...')
-            self.analyse_shm_path_let.setText(filepath[0])
+            filename = filepath[0]
+            self.filename = filename
+            self.analyse_shm_path_let.setText(self.filename)
 
     def load_shm(self):
         filterboi = 'TXT log (*.txt)'
@@ -297,7 +299,7 @@ class Application(QWidget):
             net.eval()
 
             i = 0
-            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename + '_tmp_file.csv')#'my_file.csv')
+            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename)#'my_file.csv')
             # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
             test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
             # X, y = iter(test_iter).next()
