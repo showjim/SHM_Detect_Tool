@@ -136,9 +136,11 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
-        keyword_site = 'Site:' #'DEVICE_NUMBER:'
-        keyword_item = '_SHM:' #'TestSuite = '
-        keyword_start = 'Tcoef(%)'
+        keyword_site = 'Site:' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
+        keyword_item = '_SHM:' #'Test Name' #'_SHM:' #'TestSuite = '
+        keyword_start = 'Tcoef(%)' #"Tcoef(AC Spec)" #'Tcoef(%)'
+        keyword__pass = 'P|*|+'
+        keyword__fail = '.|#|-'
         new_shm_flag = False
         new_site_flag = False
         shm_start_flag = False
@@ -151,9 +153,13 @@ class Application(QWidget):
                     new_shm_flag = True
                     new_site_flag = False
                     continue
-                if line.startswith(keyword_site) and new_shm_flag == True:#('Site:'):
+                if keyword_site in line and new_shm_flag == True:#('Site:'):
                     res = re.search('\d+', line)
-                    cur_site_index = res.group() + ',' * 12
+                    if res:
+                        cur_site_index = res.group() + ',' * 12
+                    else:
+                        cur_site_index = '' + ',' * 12
+                        print("Warning: no site index found!")
                     new_site_flag = True
                     continue
                 if keyword_start in line and new_shm_flag == True and new_site_flag == True:
@@ -162,7 +168,7 @@ class Application(QWidget):
                     continue
 
                 if new_shm_flag and new_site_flag and shm_start_flag:
-                    res = re.search('(\s(P|\*|\.|#))+', line)
+                    res = re.search('(\s*(P|\*|\.|#|\+|\-))+', line)
                     if (res is not None) and shm_body_found_flag == False:
                         shm_body_found_flag = True
                     elif (res is None) and shm_body_found_flag == True:
@@ -176,6 +182,8 @@ class Application(QWidget):
 
                     if shm_body_found_flag:
                         tmp = res.string.split()
+                        if (("+" in tmp[0]) or ("-" in tmp[0])) and len(tmp[0]) > 1:
+                            tmp = list(tmp[0])
                         self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
 
                 if len(line) == 0:
@@ -234,7 +242,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0004)
 
             # %% run training
-            num_epochs = 50 #100  # 320
+            num_epochs = 100  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -298,8 +306,9 @@ class Application(QWidget):
             # %% show result
             net.eval()
 
-            i = 0
-            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(self.filename)#'my_file.csv')
+            i = 5
+            filename = self.analyse_shm_path_let.text()
+            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(filename)#'my_file.csv')
             # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
             test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
             # X, y = iter(test_iter).next()
