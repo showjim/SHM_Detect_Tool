@@ -20,7 +20,7 @@ import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.6.2'
+__version__ = 'SHM Detect Tool Beta V0.6.3'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -136,11 +136,13 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
-        keyword_site = 'Site:' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
-        keyword_item = '_SHM:' #'Test Name' #'_SHM:' #'TestSuite = '
-        keyword_start = 'Tcoef(%)' #"Tcoef(AC Spec)" #'Tcoef(%)'
-        keyword__pass = 'P|*|+'
-        keyword__fail = '.|#|-'
+        keyword_site = 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
+        keyword_item = 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
+        keyword_start = 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
+        keyword_end = 'Tcoef(%)'
+        keyword_pass = '\+'#'P|\*' #'\+'
+        keyword_fail = '\-|E'#'\.|#' #'\-'
+        keyword_x_axis_pos = "right" #"left"
         new_shm_flag = False
         new_site_flag = False
         shm_start_flag = False
@@ -149,7 +151,7 @@ class Application(QWidget):
             while True:
                 line = buffer.readline()
                 if keyword_item in line:#line.startswith('FC_') and line.endswith('_SHM:\n'):
-                    cur_instance = line[0:-1]
+                    cur_instance = line[0:-1] + ":"
                     new_shm_flag = True
                     new_site_flag = False
                     continue
@@ -168,10 +170,20 @@ class Application(QWidget):
                     continue
 
                 if new_shm_flag and new_site_flag and shm_start_flag:
-                    res = re.search('(\s*(P|\*|\.|#|\+|\-))+', line)
+                    res = re.search('(\s*([P*.#+\-]))+', line)
+                    res_axis = re.findall('\d+\.\d+', line)
                     if (res is not None) and shm_body_found_flag == False:
                         shm_body_found_flag = True
-                    elif (res is None) and shm_body_found_flag == True:
+                    elif ((res is not None) and (res_axis is not None)):
+                        if len(res_axis) > 1:
+                            new_shm_flag = False
+                            new_site_flag = False
+                            shm_start_flag = False
+                            shm_body_found_flag = False
+                            # need add Y-axis here
+                            x_list = line.split()
+                            self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
+                    elif ((res is None) and shm_body_found_flag):
                         new_shm_flag = False
                         new_site_flag = False
                         shm_start_flag = False
@@ -182,8 +194,22 @@ class Application(QWidget):
 
                     if shm_body_found_flag:
                         tmp = res.string.split()
-                        if (("+" in tmp[0]) or ("-" in tmp[0])) and len(tmp[0]) > 1:
-                            tmp = list(tmp[0])
+                        if keyword_x_axis_pos == "right":
+                            if (re.search(keyword_pass, tmp[0]) is not None) or (
+                                    re.search(keyword_fail, tmp[0]) is not None):
+                                tmp[0] = re.sub(keyword_pass, "P", tmp[0])
+                                tmp[0] = re.sub(keyword_fail, ".", tmp[0])
+                                if len(tmp) > 1:
+                                    if len(tmp[0]) > 1:
+                                        tmp = [''.join(tmp[1:])] + list(tmp[0])
+                        else:
+                            if (re.search(keyword_pass, tmp[-1]) is not None) or (
+                                    re.search(keyword_fail, tmp[-1]) is not None):
+                                tmp[-1] = re.sub(keyword_pass, "P", tmp[-1])
+                                tmp[-1] = re.sub(keyword_fail, ".", tmp[-1])
+                                if len(tmp) > 1:
+                                    if len(tmp[-1]) > 1:
+                                        tmp = [''.join(tmp[0:-1])] + list(tmp[-1])
                         self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
 
                 if len(line) == 0:
@@ -415,7 +441,7 @@ class Application(QWidget):
                     row += 1
 
                 # row += shm.size(1)
-            col = len(shms[shm][i])
+            col = len(shms[shm][i-1])
             worksheet.conditional_format(0, 0, row, col,
                                          {'type': 'cell', 'criteria': 'equal to',
                                           'value': '"."', 'format': format_2XXX})
