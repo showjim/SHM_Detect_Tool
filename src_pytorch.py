@@ -11,6 +11,7 @@ import numpy as np
 import torch.utils.data as data
 import torch.nn.functional as F
 
+# yes, I had an M1 device~~~
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Datasets/FashionMNIST'):

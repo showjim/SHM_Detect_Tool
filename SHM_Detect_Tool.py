@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ###################################################
 # SHM Detect Tool                                 #
-# Version: Beta 0.1                               #
+# Version: Beta 0.6                               #
 #                                                 #
 # Sep. 02, 2020                                   #
 # A Tool to Detect the Result of SHM              #
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append("..")
 import src_pytorch as src
-
+from SHM_keywords_setting import *
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 import pandas as pd
@@ -136,13 +136,13 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
-        keyword_site = 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
-        keyword_item = 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
-        keyword_start = 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
-        keyword_end = 'Tcoef(%)'
-        keyword_pass = '\+'#'P|\*' #'\+'
-        keyword_fail = '\-|E'#'\.|#' #'\-'
-        keyword_x_axis_pos = "right" #"left"
+        # keyword_site = 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
+        # keyword_item = 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
+        # keyword_start = 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
+        # keyword_end = 'Tcoef(%)'
+        # keyword_pass = '\+'#'P|\*' #'\+'
+        # keyword_fail = '\-|E'#'\.|#' #'\-'
+        # keyword_y_axis_pos = "right" #"left"
         new_shm_flag = False
         new_site_flag = False
         shm_start_flag = False
@@ -194,7 +194,7 @@ class Application(QWidget):
 
                     if shm_body_found_flag:
                         tmp = res.string.split()
-                        if keyword_x_axis_pos == "right":
+                        if keyword_y_axis_pos == "right":
                             if (re.search(keyword_pass, tmp[0]) is not None) or (
                                     re.search(keyword_fail, tmp[0]) is not None):
                                 tmp[0] = re.sub(keyword_pass, "P", tmp[0])
