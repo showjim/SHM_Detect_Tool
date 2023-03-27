@@ -13,7 +13,7 @@ import xlsxwriter
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
-import src_pytorch as src
+import src_pytorch_public as src
 from SHM_keywords_setting import *
 from PyQt5.QtWidgets import *
 import qtawesome as qta
