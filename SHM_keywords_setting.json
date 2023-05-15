@@ -1,0 +1,12 @@
+{
+  "//": "# the keyword to indicate the site infomation line",
+  "//": "DEVICE_NUMBER:  Site:  DEVICE_NUMBER:",
+  "keyword_site": "Site",
+  "keyword_item": "<",
+  "keyword_start": "Tcoef(AC Spec)",
+  "keyword_end": "X Axis: Vcoef(DC Spec)",
+  "keyword_pass": "\\+",
+  "keyword_fail": "\\-|E",
+  "keyword_y_axis_pos": "right"
+
+}

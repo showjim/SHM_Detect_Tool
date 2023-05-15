@@ -7,20 +7,19 @@
 # A Tool to Detect the Result of SHM              #
 ###################################################
 import torch
-import sys
-import re
+import re, sys, json
 import xlsxwriter
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
 import src_pytorch_public as src
-from SHM_keywords_setting import *
+# import SHM_keywords_setting as setting
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.6.3'
+__version__ = 'SHM Detect Tool Beta V0.6.4'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -136,13 +135,29 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
-        # keyword_site = 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
-        # keyword_item = 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
-        # keyword_start = 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
-        # keyword_end = 'Tcoef(%)'
-        # keyword_pass = '\+'#'P|\*' #'\+'
-        # keyword_fail = '\-|E'#'\.|#' #'\-'
-        # keyword_y_axis_pos = "right" #"left"
+
+        self.result_dict = {}
+        # Load config values
+        with open(r'SHM_keywords_setting.json') as config_file:
+            config_details = json.load(config_file)
+        keyword_site = config_details["keyword_site"] #'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
+        keyword_item = config_details["keyword_item"] #'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
+        keyword_start = config_details["keyword_start"] #'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
+        keyword_end = config_details["keyword_end"] #'Tcoef(%)'
+        keyword_pass = config_details["keyword_pass"] #'\+'#'P|\*' #'\+'
+        keyword_fail = config_details["keyword_fail"] #'\-|E'#'\.|#' #'\-'
+        keyword_y_axis_pos = config_details["keyword_y_axis_pos"] #"right" #"left"
+
+        # # py setting file, cannot modify setting realtime
+        # import SHM_keywords_setting as setting
+        # keyword_site = setting.keyword_site # 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
+        # keyword_item = setting.keyword_item  # 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
+        # keyword_start = setting.keyword_start  # 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
+        # keyword_end = setting.keyword_end  # 'Tcoef(%)'
+        # keyword_pass = setting.keyword_pass  # '\+'#'P|\*' #'\+'
+        # keyword_fail = setting.keyword_fail  # '\-|E'#'\.|#' #'\-'
+        # keyword_y_axis_pos = setting.keyword_y_axis_pos  # "right" #"left"
+
         new_shm_flag = False
         new_site_flag = False
         shm_start_flag = False
