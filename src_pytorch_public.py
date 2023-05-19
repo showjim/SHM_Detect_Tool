@@ -114,7 +114,7 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
 
 def reformat_output(y_hat):
     a, _ = torch.max(y_hat[:, 0:2], 1)
-
+    # process Pass/Fail label
     y_hat[:, 0] = y_hat[:, 0] / a
     y_hat[:, 1] = y_hat[:, 1] / a
     y_hat[y_hat[:, 0] < 1., 0] = 0

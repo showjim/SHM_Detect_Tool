@@ -163,106 +163,111 @@ class Application(QWidget):
         shm_start_flag = False
         shm_body_found_flag = False
         shm_end_flag = False
-        with open(filename, 'r') as buffer:
-            while True:
-                line = buffer.readline()
-                if keyword_item in line:#line.startswith('FC_') and line.endswith('_SHM:\n'):
-                    cur_instance = line[0:-1] + ":"
-                    new_shm_flag = True
-                    new_site_flag = False
-                    continue
-                if keyword_site in line and new_shm_flag == True:#('Site:'):
-                    res = re.search('\d+', line)
-                    if res:
-                        cur_site_index = res.group() + ',' * 12
-                    else:
-                        # assume all right side y_axis is from CHAR studio default output
-                        """
-                        Site           Pattern(s)          X Pin(s)       Slow Axis Value     
-                        0              top_AA_Scan_stuck_s *              N/A                 
-                             
-                                          Y Axis: Tcoef(AC Spec)
-                             +++++++++++  1.500  
-                             ++++++-++++  1.400  
-                             +++++++++++  1.300  
-                             +++++++++-+  1.200  
-                             ++++++++++-  1.100  
-                             +++++++----  1.000  
-                             -++++++++++  900.000 m
-                             --+++++++++  800.000 m
-                             ----++++++-  700.000 m
-                             ------++-++  600.000 m
-                             -----------  500.000 m
-                             88899000000
-                             04826000000
-                             00000111111
-                             ...........
-                             00000000112
-                             00000048260
-                             00000000000
-                             mmmmm      
-                             X Axis: Vcoef(DC Spec)
-                        """
-                        if keyword_y_axis_pos == "right":
-                            line = buffer.readline()
-                            res = re.search('\d+', line)
+        try:
+            with open(filename, 'r') as buffer:
+                while True:
+                    line = buffer.readline()
+                    if keyword_item in line:#line.startswith('FC_') and line.endswith('_SHM:\n'):
+                        cur_instance = line[0:-1] + ":"
+                        new_shm_flag = True
+                        new_site_flag = False
+                        continue
+                    if keyword_site in line and new_shm_flag == True:#('Site:'):
+                        res = re.search('\d+', line)
                         if res:
                             cur_site_index = res.group() + ',' * 12
                         else:
-                            cur_site_index = '' + ',' * 12
-                            print("Warning: no site index found!")
-                    new_site_flag = True
-                    continue
-                if keyword_start in line and new_shm_flag == True and new_site_flag == True:
-                    shm_start_flag = True
-                    self.result_dict[cur_instance + cur_site_index] = []
-                    continue
+                            # assume all right side y_axis is from CHAR studio default output
+                            """
+                            Site           Pattern(s)          X Pin(s)       Slow Axis Value     
+                            0              top_AA_Scan_stuck_s *              N/A                 
+                                 
+                                              Y Axis: Tcoef(AC Spec)
+                                 +++++++++++  1.500  
+                                 ++++++-++++  1.400  
+                                 +++++++++++  1.300  
+                                 +++++++++-+  1.200  
+                                 ++++++++++-  1.100  
+                                 +++++++----  1.000  
+                                 -++++++++++  900.000 m
+                                 --+++++++++  800.000 m
+                                 ----++++++-  700.000 m
+                                 ------++-++  600.000 m
+                                 -----------  500.000 m
+                                 88899000000
+                                 04826000000
+                                 00000111111
+                                 ...........
+                                 00000000112
+                                 00000048260
+                                 00000000000
+                                 mmmmm      
+                                 X Axis: Vcoef(DC Spec)
+                            """
+                            if keyword_y_axis_pos == "right":
+                                line = buffer.readline()
+                                res = re.search('\d+', line)
+                            if res:
+                                cur_site_index = res.group() + ',' * 12
+                            else:
+                                cur_site_index = '' + ',' * 12
+                                print("Warning: no site index found!")
+                        new_site_flag = True
+                        continue
+                    if keyword_start in line and new_shm_flag == True and new_site_flag == True:
+                        shm_start_flag = True
+                        self.result_dict[cur_instance + cur_site_index] = []
+                        continue
 
-                if new_shm_flag and new_site_flag and shm_start_flag:
-                    res = re.search('(\s*([P*.#+\-]))+', line)
-                    res_axis = re.findall('\d+\.\d+', line)
-                    if (res is not None) and shm_body_found_flag == False:
-                        shm_body_found_flag = True
-                    elif (res is not None) and (res_axis is not None):
-                        if len(res_axis) > 1:
+                    if new_shm_flag and new_site_flag and shm_start_flag:
+                        res = re.search('(\s*([P*.#+\-]))+', line)
+                        res_axis = re.findall('\d+\.\d+', line)
+                        if (res is not None) and shm_body_found_flag == False:
+                            shm_body_found_flag = True
+                        elif (res is not None) and (res_axis is not None):
+                            if len(res_axis) > 1:
+                                new_shm_flag = False
+                                new_site_flag = False
+                                shm_start_flag = False
+                                shm_body_found_flag = False
+                                # need add Y-axis here
+                                x_list = line.split()
+                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
+                        elif (res is None) and shm_body_found_flag:
                             new_shm_flag = False
                             new_site_flag = False
                             shm_start_flag = False
                             shm_body_found_flag = False
-                            # need add Y-axis here
+                            # need add X-axis here
                             x_list = line.split()
                             self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
-                    elif (res is None) and shm_body_found_flag:
-                        new_shm_flag = False
-                        new_site_flag = False
-                        shm_start_flag = False
-                        shm_body_found_flag = False
-                        # need add X-axis here
-                        x_list = line.split()
-                        self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
 
-                    if shm_body_found_flag:
-                        tmp = res.string.split()
-                        if keyword_y_axis_pos == "right":
-                            if (re.search(keyword_pass, tmp[0]) is not None) or (
-                                    re.search(keyword_fail, tmp[0]) is not None):
-                                tmp[0] = re.sub(keyword_pass, "P", tmp[0])
-                                tmp[0] = re.sub(keyword_fail, ".", tmp[0])
-                                if len(tmp) > 1:
-                                    if len(tmp[0]) > 1:
-                                        tmp = [''.join(tmp[1:])] + list(tmp[0])
-                        else:
-                            if (re.search(keyword_pass, tmp[-1]) is not None) or (
-                                    re.search(keyword_fail, tmp[-1]) is not None):
-                                tmp[-1] = re.sub(keyword_pass, "P", tmp[-1])
-                                tmp[-1] = re.sub(keyword_fail, ".", tmp[-1])
-                                if len(tmp) > 1:
-                                    if len(tmp[-1]) > 1:
-                                        tmp = [''.join(tmp[0:-1])] + list(tmp[-1])
-                        self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
+                        if shm_body_found_flag:
+                            tmp = res.string.split()
+                            if keyword_y_axis_pos == "right":
+                                if (re.search(keyword_pass, tmp[0]) is not None) or (
+                                        re.search(keyword_fail, tmp[0]) is not None):
+                                    tmp[0] = re.sub(keyword_pass, "P", tmp[0])
+                                    tmp[0] = re.sub(keyword_fail, ".", tmp[0])
+                                    if len(tmp) > 1:
+                                        if len(tmp[0]) > 1:
+                                            tmp = [''.join(tmp[1:])] + list(tmp[0])
+                            else:
+                                if (re.search(keyword_pass, tmp[-1]) is not None) or (
+                                        re.search(keyword_fail, tmp[-1]) is not None):
+                                    tmp[-1] = re.sub(keyword_pass, "P", tmp[-1])
+                                    tmp[-1] = re.sub(keyword_fail, ".", tmp[-1])
+                                    if len(tmp) > 1:
+                                        if len(tmp[-1]) > 1:
+                                            tmp = [''.join(tmp[0:-1])] + list(tmp[-1])
+                            self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
 
-                if len(line) == 0:
-                    break
+                    if len(line) == 0:
+                        break
+        except Exception as e:
+            QMessageBox.information(
+                self, 'Error', e.__str__(),
+                QMessageBox.Ok)
 
         with open(self.filename + '_tmp_file.csv', 'w') as f:
             for key, values in self.result_dict.items():
@@ -317,7 +322,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0004)
 
             # %% run training
-            num_epochs = 100  # 320
+            num_epochs = 60  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -476,7 +481,7 @@ class Application(QWidget):
 
             # Optimise xlsx output format
             worksheet.outline_settings(True, False, True, False)
-            worksheet.write_row(0, 0, ['Instance', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
+            worksheet.write_row(0, 0, ['Instance', '', '', '','', 'Site Index', 'Result Symbol', 'Result'])
             row = 1
             for title, shm in zip(titles, shms):
                 info_line = title.split(':')
