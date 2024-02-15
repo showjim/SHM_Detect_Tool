@@ -47,32 +47,32 @@ class Application():
                             cur_site_index = res.group() + ',' * 12
                         else:
                             # assume all right side y_axis is from CHAR studio default output
-                            """
-                            Site           Pattern(s)          X Pin(s)       Slow Axis Value     
-                            0              top_AA_Scan_stuck_s *              N/A                 
-
-                                              Y Axis: Tcoef(AC Spec)
-                                 +++++++++++  1.500  
-                                 ++++++-++++  1.400  
-                                 +++++++++++  1.300  
-                                 +++++++++-+  1.200  
-                                 ++++++++++-  1.100  
-                                 +++++++----  1.000  
-                                 -++++++++++  900.000 m
-                                 --+++++++++  800.000 m
-                                 ----++++++-  700.000 m
-                                 ------++-++  600.000 m
-                                 -----------  500.000 m
-                                 88899000000
-                                 04826000000
-                                 00000111111
-                                 ...........
-                                 00000000112
-                                 00000048260
-                                 00000000000
-                                 mmmmm      
-                                 X Axis: Vcoef(DC Spec)
-                            """
+                            # """
+                            # Site           Pattern(s)          X Pin(s)       Slow Axis Value
+                            # 0              top_AA_Scan_stuck_s *              N/A
+                            #
+                            #                   Y Axis: Tcoef(AC Spec)
+                            #      +++++++++++  1.500
+                            #      ++++++-++++  1.400
+                            #      +++++++++++  1.300
+                            #      +++++++++-+  1.200
+                            #      ++++++++++-  1.100
+                            #      +++++++----  1.000
+                            #      -++++++++++  900.000 m
+                            #      --+++++++++  800.000 m
+                            #      ----++++++-  700.000 m
+                            #      ------++-++  600.000 m
+                            #      -----------  500.000 m
+                            #      88899000000
+                            #      04826000000
+                            #      00000111111
+                            #      ...........
+                            #      00000000112
+                            #      00000048260
+                            #      00000000000
+                            #      mmmmm
+                            #      X Axis: Vcoef(DC Spec)
+                            # """
                             if keyword_y_axis_pos == "right":
                                 line = buffer.readline()
                                 res = re.search('\d+', line)
