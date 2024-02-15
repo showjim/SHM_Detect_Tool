@@ -237,7 +237,7 @@ class Application():
     def cnn_net(self, shm_csv_log_path, send_log, mode='test'):
         # Check that MPS is available
         device = "mps" if torch.backends.mps.is_available() else "cpu"
-        print(f"Using device: {device}")
+        send_log(f"Using device: {device}")
 
         # net = d2l.LeNet()
         net = src.AlexNet()
