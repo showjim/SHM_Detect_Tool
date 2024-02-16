@@ -8,9 +8,11 @@ import streamlit as st
 from SHM_Detect_Tool import __version__
 import src_pytorch_public as src
 
+
 class Application():
     def __init__(self):
         self.result_dict = {}
+
     def read_shm_log(self, filename, config_details, send_log):
         """
         filename: Shmoo log file
@@ -159,11 +161,11 @@ class Application():
                     X.append(tmpX)
                     Y.append(tmpY)
                     Z[tmpY] = tmpZ
-                tmpY = row[0] #self.csv_df.iloc[0].dropna().to_list()
+                tmpY = row[0]  # self.csv_df.iloc[0].dropna().to_list()
                 tmpX = []
                 tmpZ = []
-            elif not("P" in row.dropna().to_list()) and not("." in row.dropna().to_list()):
-                #skip
+            elif not ("P" in row.dropna().to_list()) and not ("." in row.dropna().to_list()):
+                # skip
                 tmpZ.append(row.dropna().to_list())
                 continue
             else:
@@ -189,7 +191,7 @@ class Application():
 
             # Optimise xlsx output format
             worksheet.outline_settings(True, False, True, False)
-            worksheet.write_row(0, 0, ['Instance', '', '', '','', 'Site Index', 'Result Symbol', 'Result'])
+            worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
             row = 1
             for title, shm in zip(titles, shms):
                 info_line = title.split(':')
@@ -203,7 +205,7 @@ class Application():
                     row += 1
 
                 # row += shm.size(1)
-            col = len(shms[shm][i-1])
+            col = len(shms[shm][i - 1])
             worksheet.conditional_format(0, 0, row, col,
                                          {'type': 'cell', 'criteria': 'equal to',
                                           'value': '"."', 'format': format_2XXX})
@@ -221,9 +223,9 @@ class Application():
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
-            num_workers = 0 #4
+            num_workers = 0  # 4
         if mode == 'P':
-            dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')#'my_file.csv')
+            dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')  # 'my_file.csv')
         else:
             dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
         if batch_cnt < 0:
@@ -259,7 +261,7 @@ class Application():
             # %% define loss function
             # loss = torch.nn.CrossEntropyLoss()
             # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.MultiLabelSoftMarginLoss() #MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            loss = torch.nn.MultiLabelSoftMarginLoss()  # MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
 
             # %% optimise function
             lr = 0.0014
@@ -276,7 +278,7 @@ class Application():
             # %% show result
             net.eval()
             # print(net.training)
-            X, y = next(iter(test_iter)) #.__next__()# .next()
+            X, y = next(iter(test_iter))  # .__next__()# .next()
             # X = X.to(device)
             true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
             y_hat = net(X)
@@ -306,16 +308,17 @@ class Application():
             for i in range(len(shmoo_title)):
                 test_iter, tmp_raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
                 # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
-                X, y = next(iter(test_iter)) #.next()
+                X, y = next(iter(test_iter))  # .next()
                 y_hat = net(X)
                 y_hat = src.reformat_output(y_hat)
                 y_hat[y_hat >= 0.5] = 1
                 y_hat[y_hat < 0.5] = 0
                 true_labels = y[0]
                 pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-            #     titles_plot.append(true_labels + '\n' + pred_labels[0]) # = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-            #     # src.show_shm_fig(X[0:50], titles[0:50])
-                titles.append(true_labels + ':' + pred_labels[0]) #([true + ':' + pred for true, pred in zip(true_labels, pred_labels)])
+                #     titles_plot.append(true_labels + '\n' + pred_labels[0]) # = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+                #     # src.show_shm_fig(X[0:50], titles[0:50])
+                titles.append(true_labels + ':' + pred_labels[
+                    0])  # ([true + ':' + pred for true, pred in zip(true_labels, pred_labels)])
             #     raw_dict.update(tmp_raw_dict)
             #     if i < 50:
             #         figs[i].imshow(X[0].view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
@@ -330,7 +333,7 @@ class Application():
             """Evaluation part, ignored in webapp"""
 
 
-def main(app=Application):
+def main(app=Application()):
     st.title(f"{__version__}")
 
     work_path = os.path.abspath('.')
@@ -381,19 +384,20 @@ def main(app=Application):
 
     with st.expander("Run Logs"):
         log_text_area = st.empty()  # text_area("", key="logs", height=300)
+
     def send_log(data_log):
         st.session_state["shm_detect_logprint"] += f'{datetime.now()} - {data_log}\n'
         log_text_area.code(st.session_state["shm_detect_logprint"])
 
     if st.button('Convert Shmoo log to CSV'):
-        #"""Convert Shmoo log to CSV"""
+        # """Convert Shmoo log to CSV"""
         convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
         st.session_state["csv_shm_file"] = convt_csv_shm_file
         send_log(f"Convert Shmoo log to CSV format completed.")
 
     st.subheader('Step 3. Run to analyse Shmoo log')
     if st.button('Analyse Shmoo Log'):
-        #"""run analyse Shmoo log action"""
+        # """run analyse Shmoo log action"""
         report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
         st.session_state["shm_analyse_result"] = report_name
         send_log(f"Finish analysis!")
@@ -408,8 +412,6 @@ def main(app=Application):
                 file_name=result_file_name,
                 mime="application/octet-stream"
             )
-
-
 
 
 # Run the main function
