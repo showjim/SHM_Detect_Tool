@@ -19,7 +19,7 @@ import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.7.3'
+__version__ = 'SHM Detect Tool Beta V0.7.4'
 __author__ = 'zhouchao486@gmail.com'
 
 
@@ -175,7 +175,7 @@ class Application(QWidget):
                     if keyword_site in line and new_shm_flag == True:#('Site:'):
                         res = re.search('\d+', line)
                         if res:
-                            cur_site_index = res.group() + ',' * 12
+                            cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                         else:
                             # assume all right side y_axis is from CHAR studio default output
                             """
@@ -208,9 +208,9 @@ class Application(QWidget):
                                 line = buffer.readline()
                                 res = re.search('\d+', line)
                             if res:
-                                cur_site_index = res.group() + ',' * 12
+                                cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                             else:
-                                cur_site_index = '' + ',' * 12
+                                cur_site_index = '' + ',' * 100 #make this head larger than the body
                                 print("Warning: no site index found!")
                         new_site_flag = True
                         continue
@@ -322,7 +322,7 @@ class Application(QWidget):
             optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0004)
 
             # %% run training
-            num_epochs = 60  # 320
+            num_epochs = 80  # 320
             src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
 
             # %% save the state
@@ -444,7 +444,7 @@ class Application(QWidget):
         X = []
         Y = []
         Z = {}
-        self.csv_df = pd.read_csv(csv_file, header=None)
+        self.csv_df = pd.read_csv(csv_file, header=None, engine='python')
         for index, row in self.csv_df.iterrows():
             if ':' in row[0]:
                 if len(tmpX) > 0:
