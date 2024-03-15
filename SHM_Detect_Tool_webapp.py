@@ -154,7 +154,7 @@ class Application():
         X = []
         Y = []
         Z = {}
-        self.csv_df = pd.read_csv(csv_file, header=None)
+        self.csv_df = pd.read_csv(csv_file, header=None, engine="python")
         for index, row in self.csv_df.iterrows():
             if ':' in row[0]:
                 if len(tmpX) > 0:
