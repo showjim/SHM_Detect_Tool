@@ -46,7 +46,7 @@ class Application():
                     if keyword_site in line and new_shm_flag == True:  # ('Site:'):
                         res = re.search('\d+', line)
                         if res:
-                            cur_site_index = res.group() + ',' * 12
+                            cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                         else:
                             # assume all right side y_axis is from CHAR studio default output
                             # """
@@ -79,9 +79,9 @@ class Application():
                                 line = buffer.readline()
                                 res = re.search('\d+', line)
                             if res:
-                                cur_site_index = res.group() + ',' * 12
+                                cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                             else:
-                                cur_site_index = '' + ',' * 12
+                                cur_site_index = '' + ',' * 100 #make this head larger than the body
                                 print("Warning: no site index found!")
                         new_site_flag = True
                         continue
