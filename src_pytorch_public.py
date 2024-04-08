@@ -25,7 +25,7 @@ def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
     dataset = CsvDataset(root)
     train_dataset, test_dataset = data.random_split(dataset, (dataset.__len__() - 100, 100))
     train_iter = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
-                                             num_workers=num_workers)
+                                             num_workers=num_workers, drop_last=True) # add drop_last to prevent error when BN size == 1, ValueError: Expected more than 1 value per channel when training, got input size torch.Size([1, 42])
     test_iter = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     return train_iter, test_iter
@@ -188,7 +188,8 @@ class CsvDataset(data.Dataset):
         go = True
         while go:
             try:
-                tmp_y = self.convert_result(self.csv_df.get_chunk(1).values[0][0])
+                cur_result = self.csv_df.get_chunk(1).values[0][0]
+                tmp_y = self.convert_result(cur_result)
                 tmp_x = self.csv_df.get_chunk(11).values
                 tmp_x = self.convert_SHM_data(tmp_x)
                 tmp_x = tmp_x[None, :, :]
@@ -196,6 +197,8 @@ class CsvDataset(data.Dataset):
                 y = np.vstack((y, tmp_y))
                 x = np.vstack((x, tmp_x))
                 self.data_count += 1
+                if self.data_count == 599:
+                    print("OK")
             except Exception as e:
                 print(type(e))
                 go = False
@@ -224,7 +227,7 @@ class CsvDataset(data.Dataset):
         tmp_np = tmp_np.astype(float)
         return tmp_np
 
-    def convert_result(self, text):
+    def convert_result(self, text:str):
         result = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         text_list = text.split('-')
         dict_keys = self.result_dict.keys()

@@ -1,8 +1,8 @@
 {
   "//": "# the keyword to indicate the site infomation line",
   "//": "DEVICE_NUMBER:  Site:  DEVICE_NUMBER:",
-  "keyword_site": "Site: ",
-  "keyword_item": "_SHM:",
+  "keyword_site": "DEVICE_NUMBER: ",
+  "keyword_item": "Test Suite Name = ",
   "keyword_start": "Tcoef(%)",
   "keyword_end": "Vcoef(%)",
   "keyword_pass": "P|\\*",
