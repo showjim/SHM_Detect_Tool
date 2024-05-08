@@ -19,7 +19,7 @@ import qtawesome as qta
 import pandas as pd
 import numpy as np
 
-__version__ = 'SHM Detect Tool Beta V0.7.6'
+__version__ = 'SHM Detect Tool Beta V0.7.7'
 __author__ = 'zhouchao486@gmail.com'
 
 
