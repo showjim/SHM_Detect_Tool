@@ -393,29 +393,35 @@ def main(app=Application()):
         st.session_state["shm_detect_logprint"] += f'{datetime.now()} - {data_log}\n'
         log_text_area.code(st.session_state["shm_detect_logprint"])
 
-    if st.button('Convert Shmoo log to CSV'):
-        # """Convert Shmoo log to CSV"""
-        convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
-        st.session_state["csv_shm_file"] = convt_csv_shm_file
-        send_log(f"Convert Shmoo log to CSV format completed.")
+    col1, col2= st.columns(2)
+    with col1:
+        st.subheader('Step 3. Run to analyse Shmoo log')
+        if st.button('Convert Shmoo log to CSV'):
+            # """Convert Shmoo log to CSV"""
+            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
+            st.session_state["csv_shm_file"] = convt_csv_shm_file
+            send_log(f"Convert Shmoo log to CSV format completed.")
 
-    st.subheader('Step 3. Run to analyse Shmoo log')
-    if st.button('Analyse Shmoo Log'):
-        # """run analyse Shmoo log action"""
-        report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
-        st.session_state["shm_analyse_result"] = report_name
-        send_log(f"Finish analysis!")
 
-    if len(st.session_state["shm_analyse_result"]) > 0:
-        result_file_path = st.session_state["shm_analyse_result"]
-        result_file_name = os.path.basename(result_file_path)
-        with open(result_file_path, "rb") as file:
-            btn = st.download_button(
-                label="Download Result XLSX File",
-                data=file,
-                file_name=result_file_name,
-                mime="application/octet-stream"
-            )
+        if st.button('Analyse Shmoo Log'):
+            # """run analyse Shmoo log action"""
+            report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
+            st.session_state["shm_analyse_result"] = report_name
+            send_log(f"Finish analysis!")
+
+        if len(st.session_state["shm_analyse_result"]) > 0:
+            result_file_path = st.session_state["shm_analyse_result"]
+            result_file_name = os.path.basename(result_file_path)
+            with open(result_file_path, "rb") as file:
+                btn = st.download_button(
+                    label="Download Result XLSX File",
+                    data=file,
+                    file_name=result_file_name,
+                    mime="application/octet-stream"
+                )
+
+    with col2:
+        st.subheader('Step 3. Generate CHAR correlation log')
 
 
 # Run the main function
