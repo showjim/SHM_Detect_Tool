@@ -399,9 +399,10 @@ def main(app=Application()):
         st.session_state["shm_detect_logprint"] += f'{datetime.now()} - {data_log}\n'
         log_text_area.code(st.session_state["shm_detect_logprint"])
 
-    col1, col2= st.columns(2)
+    st.subheader('Step 3. Run to analyse CHAR log', divider="violet")
+    col1, col2 = st.columns(2)
     with col1:
-        st.subheader('Step 3A. Run to analyse Shmoo log')
+        st.markdown('#### Step 3A. Analyse Shmoo result')
         if st.button('Convert Shmoo log to CSV'):
             # """Convert Shmoo log to CSV"""
             convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
@@ -409,7 +410,7 @@ def main(app=Application()):
             send_log(f"Convert Shmoo log to CSV format completed.")
 
 
-        if st.button('Analyse Shmoo Log'):
+        if st.button('Analyse Shmoo Result'):
             # """run analyse Shmoo log action"""
             report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
             st.session_state["shm_analyse_result"] = report_name
@@ -427,7 +428,7 @@ def main(app=Application()):
                 )
 
     with col2:
-        st.subheader('Step 3B. Compare CHAR log')
+        st.markdown('#### Step 3B. Compare CHAR log')
         site_lbl = st.text_input("Specify the site to process for each file", placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
         if st.button('Generate CHAR correlation report'):
             file_paths = st.session_state["FilePath"]
