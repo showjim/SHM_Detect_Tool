@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 from SHM_Detect_Tool import __version__
-import src_pytorch_public as src
+from Source import src_pytorch_public as src
 from Source.CharDataCorrelation import (
     getKeyWordFromSettingFile,
     getDatalogInfo,

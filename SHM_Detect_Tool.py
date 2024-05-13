@@ -12,12 +12,11 @@ import xlsxwriter
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
-import src_pytorch_public as src
+from Source import src_pytorch_public as src
 # import SHM_keywords_setting as setting
 from PyQt5.QtWidgets import *
 import qtawesome as qta
 import pandas as pd
-import numpy as np
 
 __version__ = 'SHM Detect Tool Beta V0.7.8'
 __author__ = 'zhouchao486@gmail.com'

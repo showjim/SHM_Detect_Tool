@@ -1,12 +1,11 @@
 import torch
 from torch import nn
 from torch.nn import init
-import numpy as np
 import sys
 from collections import OrderedDict
 
 sys.path.append("../..")
-import src_pytorch as d2l
+from Source import src_pytorch as d2l
 
 # %% load data
 batch_size = 256
