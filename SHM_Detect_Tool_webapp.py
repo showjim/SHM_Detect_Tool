@@ -7,6 +7,10 @@ import pandas as pd
 import streamlit as st
 from SHM_Detect_Tool import __version__
 import src_pytorch_public as src
+from Source.CharDataCorrelation import (
+    getKeyWordFromSettingFile,
+    getDatalogInfo,
+)
 
 
 class Application():
@@ -353,6 +357,8 @@ def main(app=Application()):
         st.session_state["shm_analyse_result"] = ""
     if "shm_detect_logprint" not in st.session_state:
         st.session_state["shm_detect_logprint"] = ""
+    if "shm_corr_result" not in st.session_state:
+        st.session_state["shm_corr_result"] = ""
 
     # Sidebar for menu options
     with st.sidebar:
@@ -395,7 +401,7 @@ def main(app=Application()):
 
     col1, col2= st.columns(2)
     with col1:
-        st.subheader('Step 3. Run to analyse Shmoo log')
+        st.subheader('Step 3A. Run to analyse Shmoo log')
         if st.button('Convert Shmoo log to CSV'):
             # """Convert Shmoo log to CSV"""
             convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
@@ -421,7 +427,25 @@ def main(app=Application()):
                 )
 
     with col2:
-        st.subheader('Step 3. Generate CHAR correlation log')
+        st.subheader('Step 3B. Compare CHAR log')
+        site_lbl = st.text_input("Specify the site to process for each file", placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
+        if st.button('Generate CHAR correlation report'):
+            file_paths = st.session_state["FilePath"]
+            config_details = st.session_state["JsonConfig"]
+            TER_keyword = getKeyWordFromSettingFile(config_details)
+            char_corr_report_name = getDatalogInfo(TER_keyword, file_paths, site_lbl)
+            st.session_state["shm_corr_result"] = char_corr_report_name
+
+        if len(st.session_state["shm_corr_result"]) > 0:
+            corr_result_file_path = st.session_state["shm_corr_result"]
+            corr_result_file_name = os.path.basename(corr_result_file_path)
+            with open(corr_result_file_path, "rb") as file:
+                char_corr_btn = st.download_button(
+                    label="Download CHAR Corr XLSX File",
+                    data=file,
+                    file_name=corr_result_file_name,
+                    mime="application/octet-stream"
+                )
 
 
 # Run the main function
