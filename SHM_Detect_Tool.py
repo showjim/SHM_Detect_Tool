@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import *
 import qtawesome as qta
 import pandas as pd
 
-__version__ = 'SHM Detect Tool Beta V0.7.8'
+__version__ = 'SHM Detect Tool Beta V0.7.9'
 __author__ = 'zhouchao486@gmail.com'
 
 

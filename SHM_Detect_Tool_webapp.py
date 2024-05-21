@@ -403,14 +403,19 @@ def main(app=Application()):
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('#### Step 3A. Analyse Shmoo result')
-        if st.button('Convert Shmoo log to CSV'):
+        # if st.button('Convert Shmoo log to CSV'):
+        #     # """Convert Shmoo log to CSV"""
+        #     convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
+        #     st.session_state["csv_shm_file"] = convt_csv_shm_file
+        #     send_log(f"Convert Shmoo log to CSV format completed.")
+
+        if st.button('Analyse Shmoo Result'):
             # """Convert Shmoo log to CSV"""
-            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
+            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"],
+                                                  send_log)
             st.session_state["csv_shm_file"] = convt_csv_shm_file
             send_log(f"Convert Shmoo log to CSV format completed.")
 
-
-        if st.button('Analyse Shmoo Result'):
             # """run analyse Shmoo log action"""
             report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
             st.session_state["shm_analyse_result"] = report_name
