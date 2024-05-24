@@ -27,11 +27,11 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
 # 暴露 Streamlit 使用的默认端口
-EXPOSE 8503
+EXPOSE 8501
 
 # 运行 Streamlit 应用
 CMD ["streamlit", "run", "SHM_Detect_Tool_webapp.py"]
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8503/ || exit 1
+  CMD curl -f http://localhost:8501/ || exit 1
