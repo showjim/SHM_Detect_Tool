@@ -33,5 +33,5 @@ EXPOSE 8503
 CMD ["streamlit", "run", "SHM_Detect_Tool_webapp.py"]
 
 # 健康检查
-HEALTHCHECK --interval=5m --timeout=3s \
+HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:8503/ || exit 1
