@@ -337,10 +337,37 @@ class Application():
             """Evaluation part, ignored in webapp"""
 
 
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store the password.
+        else:
+            st.session_state["password_correct"] = False
+
+    # Return True if the password is validated.
+    if st.session_state.get("password_correct", False) or st.secrets["password"] == "":
+        return True
+
+    # Show input for password.
+    st.text_input(
+        "Password", type="password", on_change=password_entered, key="password"
+    )
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
+
 def main(app=Application()):
     st.title(f"{__version__}")
     st.caption('Powered by Streamlit, written by Chao Zhou')
     st.subheader("", divider='rainbow')
+
+    if not check_password():
+        st.stop()  # Do not continue if check_password is not True.
+
     work_path = os.path.abspath('.')
     WorkPath = os.path.join(work_path, "workDir")
     if not os.path.exists(WorkPath):  # check the directory is existed or not
