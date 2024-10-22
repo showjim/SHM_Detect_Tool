@@ -388,8 +388,8 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
     # if not os.path.exists(OutputPath):  # check the directory is existed or not
     #     os.mkdir(OutputPath)
 
-    if "FilePath" not in st.session_state:
-        st.session_state["FilePath"] = ""
+    if "FilePaths" not in st.session_state:
+        st.session_state["FilePaths"] = []
     if "JsonConfig" not in st.session_state:
         st.session_state["JsonConfig"] = ""
     if "shm_analyse_result" not in st.session_state:
@@ -419,16 +419,19 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
         st.json(config_details)
 
     st.subheader('Step 2. Pre-process Shmoo to CSV format')
-    file_path = st.file_uploader("Upload Shmoo Log", type=["txt"], )
+    file_paths = st.file_uploader("Upload Shmoo Log", type=["txt"], accept_multiple_files=True)
     if st.button("Upload Shmoo Log"):
-        if file_path is not None:
+        if file_paths is not None or len(file_paths) > 0:
             # save file
             with st.spinner('Reading file'):
-                uploaded_path = os.path.join(WorkPath, file_path.name)
-                with open(uploaded_path, mode="wb") as f:
-                    f.write(file_path.getbuffer())
+                uploaded_paths = []
+                for file_path in file_paths:
+                    uploaded_path = os.path.join(WorkPath, file_path.name)
+                    uploaded_paths.append(uploaded_path)
+                    with open(uploaded_path, mode="wb") as f:
+                        f.write(file_path.getbuffer())
                 if os.path.exists(uploaded_path) == True:
-                    st.session_state["FilePath"] = uploaded_path
+                    st.session_state["FilePaths"] = uploaded_paths
                     st.write(f"✅ {Path(uploaded_path).name} uploaed")
 
     with st.expander("Run Logs"):
@@ -442,15 +445,10 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('#### Step 3A. Analyse Shmoo result')
-        # if st.button('Convert Shmoo log to CSV'):
-        #     # """Convert Shmoo log to CSV"""
-        #     convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"], send_log)
-        #     st.session_state["csv_shm_file"] = convt_csv_shm_file
-        #     send_log(f"Convert Shmoo log to CSV format completed.")
 
         if st.button('Analyse Shmoo Result'):
             # """Convert Shmoo log to CSV"""
-            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePath"], st.session_state["JsonConfig"],
+            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePaths"][-1], st.session_state["JsonConfig"],
                                                   send_log)
             st.session_state["csv_shm_file"] = convt_csv_shm_file
             send_log(f"Convert Shmoo log to CSV format completed.")
@@ -475,7 +473,7 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
         st.markdown('#### Step 3B. Compare CHAR log')
         site_lbl = st.text_input("Specify the site to process for each file", placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
         if st.button('Generate CHAR correlation report'):
-            file_paths = st.session_state["FilePath"]
+            file_paths = ";".join(st.session_state["FilePaths"])
             config_details = st.session_state["JsonConfig"]
             TER_keyword = getKeyWordFromSettingFile(config_details)
             char_corr_report_name = getDatalogInfo(TER_keyword, file_paths, site_lbl)
