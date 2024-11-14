@@ -76,7 +76,7 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword):
     shtName = 'Sheet'
 
     iRow = 2
-    interval_columns = 20
+    interval_columns = 25
     iColumn = (siteCnt - 1) * interval_columns
     for line in file.readlines():
         if ('VBT error' in line):
