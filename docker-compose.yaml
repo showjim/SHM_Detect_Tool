@@ -1,5 +1,5 @@
 services:
-  shmotool:
+  shmootool:
     image: showjimzc/shmoo_tool_webapp:latest
     container_name: shmooTool
     environment:
