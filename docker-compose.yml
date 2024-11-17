@@ -1,6 +1,7 @@
 services:
   shmootool:
     image: showjimzc/shmoo_tool_webapp:latest
+    pull_policy: always
     container_name: shmooTool
     environment:
       - TZ=Asia/Shanghai
