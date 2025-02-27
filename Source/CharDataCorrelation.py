@@ -81,7 +81,8 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword):
     for line in file.readlines():
         if ('VBT error' in line):
             continue
-        if (dict_keyword['Item'] in line):
+        # if (dict_keyword['Item'] in line):
+        if (re.match(dict_keyword['Item'], line) != None):
             each_item_info.append(line)
             flag = 1
         if (dict_keyword['SiteNum'] in line and not (
