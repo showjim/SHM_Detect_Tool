@@ -1,0 +1,13 @@
+services:
+  shmootool:
+    image: showjimzc/shmoo_tool_webapp:latest
+    pull_policy: always
+    container_name: shmooTool
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /home/jerry/workDir:/app/workDir
+      - /home/jerry/Output:/app/Output
+    restart: always
+    ports:
+      - 8503:8501
