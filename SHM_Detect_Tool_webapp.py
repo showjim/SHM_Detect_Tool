@@ -13,11 +13,32 @@ from Source.CharDataCorrelation import (
     getKeyWordFromSettingFile,
     getDatalogInfo,
 )
-
+from typing import List
 
 class Application():
     def __init__(self):
         self.result_dict = {}
+        self.sites_in_log_list = []
+
+    def get_all_site_nums(self, each_file:str, site_keyword) -> List[str]:
+        site_info = []
+        str_site = ''
+        unique_site_info = []
+        file = open(each_file, 'r', encoding='utf-8')
+        for each_line in file.readlines():
+            if site_keyword['keyword_site'] != "" and site_keyword['keyword_site'] in each_line:
+                site_info.append(int(each_line[len(site_keyword['keyword_site']):len(each_line)].strip()))
+
+        unique_site_info = list(set(site_info))
+        # unique_site_info=list.sort(unique_site_info)
+
+        for x in unique_site_info:
+            if str_site == '':
+                str_site = str(x)
+            else:
+                str_site = str_site + ',' + str(x)
+
+        return str_site.split(',')
 
     def read_shm_log(self, filename, config_details, send_log):
         """
@@ -151,6 +172,8 @@ class Application():
                 for val in values:
                     f.write(','.join(i for i in val))
                     f.write('\n')
+
+        self.sites_in_log_list = self.get_all_site_nums(filename, keyword_site)
         return convt_shm_csv
 
     def read_shmoo_csv(self, csv_file):
@@ -197,6 +220,8 @@ class Application():
 
             # Optimise xlsx output format
             worksheet.outline_settings(True, False, True, False)
+            for selected_site in self.sites_in_log_list:
+                pass
             worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
             row = 1
             for title, shm in zip(titles, shms):
