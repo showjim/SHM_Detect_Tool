@@ -13,11 +13,33 @@ from Source.CharDataCorrelation import (
     getKeyWordFromSettingFile,
     getDatalogInfo,
 )
-
+from typing import List
 
 class Application():
     def __init__(self):
         self.result_dict = {}
+        self.sites_in_log_list = []
+        self.isParallelPlot = ""
+
+    def get_all_site_nums(self, each_file:str, site_keyword) -> List[str]:
+        site_info = []
+        str_site = ''
+        unique_site_info = []
+        file = open(each_file, 'r', encoding='utf-8')
+        for each_line in file.readlines():
+            if site_keyword != "" and site_keyword in each_line:
+                site_info.append(int(each_line[len(site_keyword):len(each_line)].strip()))
+
+        unique_site_info = list(set(site_info))
+        # unique_site_info=list.sort(unique_site_info)
+
+        for x in unique_site_info:
+            if str_site == '':
+                str_site = str(x)
+            else:
+                str_site = str_site + ',' + str(x)
+
+        return str_site.split(',')
 
     def read_shm_log(self, filename, config_details, send_log):
         """
@@ -151,6 +173,8 @@ class Application():
                 for val in values:
                     f.write(','.join(i for i in val))
                     f.write('\n')
+
+        self.sites_in_log_list = self.get_all_site_nums(filename, keyword_site)
         return convt_shm_csv
 
     def read_shmoo_csv(self, csv_file):
@@ -197,27 +221,58 @@ class Application():
 
             # Optimise xlsx output format
             worksheet.outline_settings(True, False, True, False)
-            worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
-            row = 1
-            for title, shm in zip(titles, shms):
-                info_line = title.split(':')
-                info_line[1:1] = [''] * 3
-                worksheet.write_row(row, 0, info_line)
-                worksheet.set_row(row, None, None, {'collapsed': True})
-                row += 1
-                for i in range(len(shms[shm])):
-                    worksheet.write_row(row, 0, shms[shm][i])
-                    worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
-                    row += 1
 
-                # row += shm.size(1)
-            col = len(shms[shm][i - 1])
-            worksheet.conditional_format(0, 0, row, col,
-                                         {'type': 'cell', 'criteria': 'equal to',
-                                          'value': '"."', 'format': format_2XXX})
-            worksheet.conditional_format(0, 0, row, col,
-                                         {'type': 'cell', 'criteria': 'equal to',
-                                          'value': '"P"', 'format': format_7XXX})
+            if self.isParallelPlot != "Disable":
+                interval_columns = int(self.isParallelPlot)
+                siteCnt = 0
+                for selected_site in self.sites_in_log_list:
+                    siteCnt = siteCnt + 1
+                    iColumn = (siteCnt - 1) * interval_columns
+                    worksheet.write_row(0, iColumn, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
+                    row = 1
+                    for title, shm in zip(titles, shms):
+                        info_line = title.split(':')
+                        if info_line[2] != selected_site:
+                            continue
+                        info_line[1:1] = [''] * 3
+                        worksheet.write_row(row, iColumn, info_line)
+                        worksheet.set_row(row, None, None, {'collapsed': True})
+                        row += 1
+                        for i in range(len(shms[shm])):
+                            worksheet.write_row(row, iColumn, shms[shm][i])
+                            worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
+                            row += 1
+
+                        # row += shm.size(1)
+                        col = len(shms[shm][i - 1])
+                        worksheet.conditional_format(0, iColumn, row, col+iColumn,
+                                                     {'type': 'cell', 'criteria': 'equal to',
+                                                      'value': '"."', 'format': format_2XXX})
+                        worksheet.conditional_format(0, iColumn, row, col+iColumn,
+                                                     {'type': 'cell', 'criteria': 'equal to',
+                                                      'value': '"P"', 'format': format_7XXX})
+            else:
+                worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
+                row = 1
+                for title, shm in zip(titles, shms):
+                    info_line = title.split(':')
+                    info_line[1:1] = [''] * 3
+                    worksheet.write_row(row, 0, info_line)
+                    worksheet.set_row(row, None, None, {'collapsed': True})
+                    row += 1
+                    for i in range(len(shms[shm])):
+                        worksheet.write_row(row, 0, shms[shm][i])
+                        worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
+                        row += 1
+
+                    # row += shm.size(1)
+                col = len(shms[shm][i - 1])
+                worksheet.conditional_format(0, 0, row, col,
+                                             {'type': 'cell', 'criteria': 'equal to',
+                                              'value': '"."', 'format': format_2XXX})
+                worksheet.conditional_format(0, 0, row, col,
+                                             {'type': 'cell', 'criteria': 'equal to',
+                                              'value': '"P"', 'format': format_7XXX})
             workbook.close()
             send_log('Xlsx file is written!')
 
@@ -242,7 +297,8 @@ class Application():
 
         return test_iter, dataset.raw_dict
 
-    def cnn_net(self, shm_csv_log_path, send_log, mode='test'):
+    def cnn_net(self, shm_csv_log_path, send_log, mode='test', isParallelPlot='Disable'):
+        self.isParallelPlot = isParallelPlot
         # Check that MPS is available
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         send_log(f"Using device: {device}")
@@ -445,7 +501,10 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('#### Step 3A. Analyse Shmoo result')
-
+        isParallelPlot = st.select_slider(label="`Enable Parallel Plot`",
+                                         options=["Disable", "15", "25"],
+                                         value="Disable"
+                                         )
         if st.button('Analyse Shmoo Result'):
             # """Convert Shmoo log to CSV"""
             convt_csv_shm_file = app.read_shm_log(st.session_state["FilePaths"][-1], st.session_state["JsonConfig"],
@@ -454,7 +513,7 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
             send_log(f"Convert Shmoo log to CSV format completed.")
 
             # """run analyse Shmoo log action"""
-            report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test")
+            report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test", isParallelPlot)
             st.session_state["shm_analyse_result"] = report_name
             send_log(f"Finish analysis!")
 
@@ -471,12 +530,14 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
 
     with col2:
         st.markdown('#### Step 3B. Compare CHAR log')
-        site_lbl = st.text_input("Specify the site to process for each file", placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
+        site_lbl = st.text_input("`Specify the site to process for each file`",
+                                 placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
+        interval_columns = st.text_input("`Specify the gap between sites`", placeholder="25", value="25")
         if st.button('Generate CHAR correlation report'):
             file_paths = ";".join(st.session_state["FilePaths"])
             config_details = st.session_state["JsonConfig"]
             TER_keyword = getKeyWordFromSettingFile(config_details)
-            char_corr_report_name = getDatalogInfo(TER_keyword, file_paths, site_lbl)
+            char_corr_report_name = getDatalogInfo(TER_keyword, file_paths, site_lbl, int(interval_columns))
             st.session_state["shm_corr_result"] = char_corr_report_name
 
         if len(st.session_state["shm_corr_result"]) > 0:

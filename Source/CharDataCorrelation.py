@@ -31,7 +31,7 @@ def getKeyWordFromSettingFile(config_details):
     return TER_keyword
 
 
-def getDatalogInfo(TER_keyword, file_paths:str, site_lbl:str):
+def getDatalogInfo(TER_keyword, file_paths:str, site_lbl:str, interval_columns:int):
     totalsiteCnt = 0
     str_sites = []
     site_lbl_list = site_lbl.split(';')
@@ -57,7 +57,7 @@ def getDatalogInfo(TER_keyword, file_paths:str, site_lbl:str):
         index = index + 1
         for each_site in sites_TER:
             siteCnt = siteCnt + 1
-            processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, TER_keyword)
+            processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, TER_keyword, interval_columns)
 
     time_flag = (time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime(time.time())))
     report_file = os.getcwd() + '/shmplot_' + time_flag + '.xlsx'
@@ -65,7 +65,7 @@ def getDatalogInfo(TER_keyword, file_paths:str, site_lbl:str):
     return report_file
 
 
-def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword):
+def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword, interval_columns=20):
     # time_flag = (time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime(time.time())))
     flag = 0
     startPlot = 0
@@ -76,7 +76,7 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword):
     shtName = 'Sheet'
 
     iRow = 2
-    interval_columns = 25
+    # interval_columns = 25
     iColumn = (siteCnt - 1) * interval_columns
     for line in file.readlines():
         if ('VBT error' in line):
