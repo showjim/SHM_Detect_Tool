@@ -78,6 +78,7 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword, i
     iRow = 2
     # interval_columns = 25
     iColumn = (siteCnt - 1) * interval_columns
+    tmp_pattern_info = ""
     for line in file.readlines():
         if ('VBT error' in line):
             continue
@@ -85,6 +86,7 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword, i
         if (re.match(dict_keyword['Item'], line) != None):
             each_item_info.append(line)
             flag = 1
+            tmp_pattern_info = ""
         if (dict_keyword['SiteNum'] in line and not (
                 (dict_keyword['SiteNum'] + str(each_site)) == line[:-1]) and flag == 1):
             each_item_info = []
@@ -94,12 +96,15 @@ def processLog(each_file, each_site, xls, siteCnt, totalsiteCnt, dict_keyword, i
             each_item_info.append(line)
             site_flag = 1
             continue
-        if line and flag == 1 and site_flag == 1 and startPlot == 0: #dict_keyword['PatName'] in line and flag == 1 and site_flag == 1:
-            each_item_info.append(line)
+        if dict_keyword['PatName'] in line and flag == 1 and startPlot == 0:
+            tmp_pattern_info = line
+        # if line and flag == 1 and site_flag == 1 and startPlot == 0: #dict_keyword['PatName'] in line and flag == 1 and site_flag == 1:
+        #     each_item_info.append(line)
 
         if (line.strip().startswith(dict_keyword['PlotStart']) and flag == 1 and site_flag == 1):
             # (dict_keyword['PlotStart'] in line.strip()  and flag==1 and site_flag==1) :
             startPlot = 1
+            each_item_info.append(tmp_pattern_info)
         if startPlot == 1 and flag == 1 and site_flag == 1:
             if line != '\n':
                 each_plot.append(line)
