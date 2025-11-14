@@ -487,7 +487,7 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
                     with open(uploaded_path, mode="wb") as f:
                         f.write(file_path.getbuffer())
                 if os.path.exists(uploaded_path) == True:
-                    st.session_state["FilePaths"] = uploaded_paths
+                    st.session_state.FilePaths = uploaded_paths
                     st.write(f"✅ {Path(uploaded_path).name} uploaed")
 
     with st.expander("Run Logs"):
@@ -534,8 +534,8 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
                                  placeholder="Like 0,1;0,2; Or leave blank to process all sites...")
         interval_columns = st.text_input("`Specify the gap between sites`", placeholder="25", value="25")
         if st.button('Generate CHAR correlation report'):
-            file_paths = ";".join(st.session_state["FilePaths"])
-            config_details = st.session_state["JsonConfig"]
+            file_paths = ";".join(st.session_state.FilePaths)
+            config_details = st.session_state.JsonConfig
             TER_keyword = getKeyWordFromSettingFile(config_details)
             char_corr_report_name = getDatalogInfo(TER_keyword, file_paths, site_lbl, int(interval_columns))
             st.session_state["shm_corr_result"] = char_corr_report_name
