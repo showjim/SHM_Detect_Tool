@@ -11,11 +11,11 @@ import re, sys, json
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
-from Source import src_pytorch_public as src
+from shm_detect_tool.Source import src_pytorch_public as src
 # import SHM_keywords_setting as setting
 from PyQt5.QtWidgets import *
 import qtawesome as qta
-import shm_backend
+from shm_detect_tool import backend as shm_backend
 
 __version__ = 'SHM Detect Tool Beta V0.8.0'
 __author__ = 'zhouchao486@gmail.com'

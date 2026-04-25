@@ -1,0 +1,76 @@
+name: Build Wheels and Publish to PyPI
+
+# Trigger: push a version tag like v0.8.0 or V0.8.0
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+      - "V[0-9]*"
+  # Allow manual trigger from the Actions tab for testing
+  workflow_dispatch:
+
+jobs:
+  # -----------------------------------------------------------------------
+  # Job 1: Build binary wheels for every platform × Python version
+  # -----------------------------------------------------------------------
+  build_wheels:
+    name: Build wheels — ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false   # keep building other platforms even if one fails
+      matrix:
+        os:
+          - ubuntu-latest      # Linux  x86_64  (manylinux)
+          - windows-latest     # Windows x64
+          - macos-latest       # macOS  Apple Silicon arm64
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v3.2.1
+        env:
+          # Build for Python 3.9 – 3.14 only
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+          # Skip 32-bit builds, PyPy, and musllinux
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux* pp*"
+          # Install Cython before each wheel build environment is set up
+          CIBW_BEFORE_BUILD: "pip install cython>=3.0.0"
+          # On Linux, use manylinux_2_28 for broad glibc compatibility
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+          retention-days: 7
+
+  # -----------------------------------------------------------------------
+  # Job 2: Upload all wheels to PyPI after all builds succeed
+  # -----------------------------------------------------------------------
+  upload_pypi:
+    name: Upload to PyPI
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    environment: pypi    # requires a "pypi" environment configured in repo Settings
+
+    # Trusted Publishing — no API token needed; configure at pypi.org
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - name: List dist contents
+        run: ls -lh dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No username/password needed — uses Trusted Publishing (OIDC)

@@ -11,8 +11,14 @@ Usage:
 import argparse
 import json
 import sys
+import os
 
-import shm_backend
+from shm_detect_tool import backend as shm_backend
+
+# Bundled default paths
+BUNDLE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL = os.path.join(BUNDLE_DIR, 'state_dict.pth')
+DEFAULT_CONFIG = os.path.join(BUNDLE_DIR, 'SHM_keywords_setting.json')
 
 
 def cmd_train(args):
@@ -70,7 +76,7 @@ def cmd_correlate(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='shm_cli',
+        prog='shm-cli',
         description='SHM Detect Tool — Shmoo log analysis CLI',
     )
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
@@ -94,10 +100,10 @@ def main():
     p_analyse = subparsers.add_parser('analyse', help='Analyse shmoo log and generate XLSX report')
     p_analyse.add_argument('--log', required=True,
                            help='Path to shmoo log file (.txt)')
-    p_analyse.add_argument('--config', required=True,
-                           help='Path to JSON config file')
-    p_analyse.add_argument('--model', default='./state_dict.pth',
-                           help='Path to model weights (default: ./state_dict.pth)')
+    p_analyse.add_argument('--config', default=DEFAULT_CONFIG,
+                           help='Path to JSON config file (default: bundled S2S config)')
+    p_analyse.add_argument('--model', default=DEFAULT_MODEL,
+                           help='Path to model weights (default: bundled model)')
     p_analyse.add_argument('--gap', default='Disable',
                            choices=['Disable', '15', '25'],
                            help='Parallel plot column gap (default: Disable)')
@@ -107,8 +113,8 @@ def main():
     p_corr = subparsers.add_parser('correlate', help='Generate CHAR log correlation report')
     p_corr.add_argument('--files', nargs='+', required=True,
                         help='Shmoo log files to correlate')
-    p_corr.add_argument('--config', required=True,
-                        help='Path to JSON config file')
+    p_corr.add_argument('--config', default=DEFAULT_CONFIG,
+                        help='Path to JSON config file (default: bundled S2S config)')
     p_corr.add_argument('--sites', default='',
                         help='Site labels per file, semicolon-separated (e.g. "0,1;0,2")')
     p_corr.add_argument('--gap', type=int, default=25,

@@ -6,8 +6,8 @@ from pathlib import Path
 from datetime import datetime
 import streamlit as st
 from SHM_Detect_Tool import __version__
-import shm_backend
-from Source.CharDataCorrelation import (
+from shm_detect_tool import backend as shm_backend
+from shm_detect_tool.Source.CharDataCorrelation import (
     getKeyWordFromSettingFile,
     getDatalogInfo,
 )

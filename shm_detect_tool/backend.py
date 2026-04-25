@@ -16,8 +16,8 @@ import xlsxwriter
 import pandas as pd
 from typing import List, Tuple, Optional, Callable
 
-from Source import src_pytorch_public as src
-from Source.CharDataCorrelation import (
+from shm_detect_tool.Source import src_pytorch_public as src
+from shm_detect_tool.Source.CharDataCorrelation import (
     getKeyWordFromSettingFile,
     getDatalogInfo,
 )
