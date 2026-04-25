@@ -61,7 +61,6 @@ class Application():
         new_site_flag = False
         shm_start_flag = False
         shm_body_found_flag = False
-        shm_end_flag = False
         try:
             with open(filename, 'r') as buffer:
                 while True:
@@ -72,7 +71,7 @@ class Application():
                         new_site_flag = False
                         continue
                     if keyword_site in line and new_shm_flag == True:  # ('Site:'):
-                        res = re.search('\d+', line)
+                        res = re.search(r'\d+', line)
                         if res:
                             cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                         else:
@@ -105,7 +104,7 @@ class Application():
                             # """
                             if keyword_y_axis_pos == "right":
                                 line = buffer.readline()
-                                res = re.search('\d+', line)
+                                res = re.search(r'\d+', line)
                             if res:
                                 cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                             else:
@@ -119,11 +118,11 @@ class Application():
                         continue
 
                     if new_shm_flag and new_site_flag and shm_start_flag:
-                        res = re.search('(\s*([P*.#+\-]))+', line)
-                        res_axis = re.findall('\d+\.\d+', line)
+                        res = re.search(r'(\s*([P*.#+\-]))+', line)
+                        res_axis = re.findall(r'\d+\.\d+', line)
                         if (res is not None) and shm_body_found_flag == False:
                             shm_body_found_flag = True
-                        elif (res is not None) and (res_axis is not None):
+                        elif (res is not None) and len(res_axis) > 0:
                             if len(res_axis) > 1:
                                 new_shm_flag = False
                                 new_site_flag = False
@@ -244,6 +243,7 @@ class Application():
                             row += 1
 
                         # row += shm.size(1)
+                    if row > 1:
                         col = len(shms[shm][i - 1])
                         worksheet.conditional_format(0, iColumn, row, col+iColumn,
                                                      {'type': 'cell', 'criteria': 'equal to',
@@ -254,6 +254,8 @@ class Application():
             else:
                 worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
                 row = 1
+                col = 0
+                last_shm = None
                 for title, shm in zip(titles, shms):
                     info_line = title.split(':')
                     info_line[1:1] = [''] * 3
@@ -264,9 +266,11 @@ class Application():
                         worksheet.write_row(row, 0, shms[shm][i])
                         worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                         row += 1
+                    last_shm = shm
 
                     # row += shm.size(1)
-                col = len(shms[shm][i - 1])
+                if last_shm is not None:
+                    col = len(shms[last_shm][-1])
                 worksheet.conditional_format(0, 0, row, col,
                                              {'type': 'cell', 'criteria': 'equal to',
                                               'value': '"."', 'format': format_2XXX})
@@ -280,17 +284,21 @@ class Application():
             send_log("Please close " + report_name.split('/')[-1])
         return report_name
 
-    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=[], shmoo_title=[], mode='P'):
+    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=None, shmoo_title=None, mode='P'):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
             num_workers = 0  # 4
+        if shmoo_body is None:
+            shmoo_body = []
+        if shmoo_title is None:
+            shmoo_title = []
         if mode == 'P':
             dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')  # 'my_file.csv')
         else:
             dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
         if batch_cnt < 0:
-            batch_size = dataset.__len__()  # len(self.result_dict)
+            batch_size = len(dataset)  # len(self.result_dict)
         else:
             batch_size = batch_cnt
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
@@ -355,7 +363,7 @@ class Application():
 
         elif mode == 'test':
             # %% load state dict
-            net.load_state_dict(torch.load('./state_dict.pth'))
+            net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
             # %% show result
             net.eval()
             # net.train()
@@ -418,7 +426,9 @@ def check_password():
         st.error("😕 Password incorrect")
     return False
 
-def main(app=Application()):
+def main(app=None):
+    if app is None:
+        app = Application()
     st.title(f"{__version__}")
     st.caption('Powered by Streamlit, written by Chao Zhou')
     st.subheader("", divider='rainbow')
@@ -430,7 +440,7 @@ The user assumes all risks associated with the use of this tool, and the develop
 
 The developer welcomes feedback and bug reports from users. If you encounter any issues or have any suggestions, please contact me at Teams. Your input will help us improve the tool and provide a better user experience.
 
-By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read and understood this disclaimer and agree to be bound by its terms.""",
+By using this tool, you acknowledge that you have read and understood this disclaimer and agree to be bound by its terms.""",
                    icon="⚠️")
 
     if not check_password():
@@ -477,7 +487,7 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
     st.subheader('Step 2. Pre-process Shmoo to CSV format')
     file_paths = st.file_uploader("Upload Shmoo Log", type=["txt"], accept_multiple_files=True)
     if st.button("Upload Shmoo Log"):
-        if file_paths is not None or len(file_paths) > 0:
+        if file_paths is not None and len(file_paths) > 0:
             # save file
             with st.spinner('Reading file'):
                 uploaded_paths = []
@@ -488,7 +498,7 @@ By ENTERING PASSWORD "teradyne" of this tool, you acknowledge that you have read
                         f.write(file_path.getbuffer())
                 if os.path.exists(uploaded_path) == True:
                     st.session_state.FilePaths = uploaded_paths
-                    st.write(f"✅ {Path(uploaded_path).name} uploaed")
+                    st.write(f"✅ {Path(uploaded_path).name} uploaded")
 
     with st.expander("Run Logs"):
         log_text_area = st.empty()  # text_area("", key="logs", height=300)

@@ -161,7 +161,6 @@ class Application(QWidget):
         new_site_flag = False
         shm_start_flag = False
         shm_body_found_flag = False
-        shm_end_flag = False
         try:
             with open(filename, 'r') as buffer:
                 while True:
@@ -172,7 +171,7 @@ class Application(QWidget):
                         new_site_flag = False
                         continue
                     if keyword_site in line and new_shm_flag == True:#('Site:'):
-                        res = re.search('\d+', line)
+                        res = re.search(r'\d+', line)
                         if res:
                             cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                         else:
@@ -205,7 +204,7 @@ class Application(QWidget):
                             """
                             if keyword_y_axis_pos == "right":
                                 line = buffer.readline()
-                                res = re.search('\d+', line)
+                                res = re.search(r'\d+', line)
                             if res:
                                 cur_site_index = res.group() + ',' * 100 #make this head larger than the body
                             else:
@@ -219,11 +218,11 @@ class Application(QWidget):
                         continue
 
                     if new_shm_flag and new_site_flag and shm_start_flag:
-                        res = re.search('(\s*([P*.#+\-]))+', line)
-                        res_axis = re.findall('\d+\.\d+', line)
+                        res = re.search(r'(\s*([P*.#+\-]))+', line)
+                        res_axis = re.findall(r'\d+\.\d+', line)
                         if (res is not None) and shm_body_found_flag == False:
                             shm_body_found_flag = True
-                        elif (res is not None) and (res_axis is not None):
+                        elif (res is not None) and len(res_axis) > 0:
                             if len(res_axis) > 1:
                                 new_shm_flag = False
                                 new_site_flag = False
@@ -345,7 +344,7 @@ class Application(QWidget):
 
         elif mode == 'test':
             # %% load state dict
-            net.load_state_dict(torch.load('./state_dict.pth'))
+            net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
             # %% show result
             net.eval()
             # net.train()
@@ -373,15 +372,16 @@ class Application(QWidget):
                 raw_dict.update(tmp_raw_dict)
                 if i < 50:
                     figs[i].imshow(X[0].view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
-                    figs[i].set_title(titles_plot)
+                    figs[i].set_title(titles_plot[-1])
                     figs[i].axes.get_xaxis().set_visible(False)
                     figs[i].axes.get_yaxis().set_visible(False)
-            self.generate_shm_report_xlsx(titles, shmoo_dict, filename)
+            if titles:
+                self.generate_shm_report_xlsx(titles, shmoo_dict, filename)
             plt.show()
 
         else:
             # %% load state dict
-            net.load_state_dict(torch.load('./state_dict.pth'))
+            net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
             # %% show result
             net.eval()
 
@@ -419,17 +419,21 @@ class Application(QWidget):
 
             plt.show()
 
-    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=[], shmoo_title=[], mode='P'):
+    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=None, shmoo_title=None, mode='P'):
         if sys.platform.startswith('win'):
             num_workers = 0  # 0
         else:
             num_workers = 0 #4
+        if shmoo_body is None:
+            shmoo_body = []
+        if shmoo_title is None:
+            shmoo_title = []
         if mode == 'P':
             dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')#'my_file.csv')
         else:
             dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
         if batch_cnt < 0:
-            batch_size = dataset.__len__()  # len(self.result_dict)
+            batch_size = len(dataset)  # len(self.result_dict)
         else:
             batch_size = batch_cnt
         test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
@@ -482,6 +486,8 @@ class Application(QWidget):
             worksheet.outline_settings(True, False, True, False)
             worksheet.write_row(0, 0, ['Instance', '', '', '','', 'Site Index', 'Result Symbol', 'Result'])
             row = 1
+            col = 0
+            last_shm = None
             for title, shm in zip(titles, shms):
                 info_line = title.split(':')
                 info_line[1:1] = [''] * 3
@@ -492,9 +498,11 @@ class Application(QWidget):
                     worksheet.write_row(row, 0, shms[shm][i])
                     worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                     row += 1
+                last_shm = shm
 
                 # row += shm.size(1)
-            col = len(shms[shm][i-1])
+            if last_shm is not None:
+                col = len(shms[last_shm][-1])
             worksheet.conditional_format(0, 0, row, col,
                                          {'type': 'cell', 'criteria': 'equal to',
                                           'value': '"."', 'format': format_2XXX})

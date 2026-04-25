@@ -23,7 +23,7 @@ def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
         num_workers = 0
 
     dataset = CsvDataset(root)
-    train_dataset, test_dataset = data.random_split(dataset, (dataset.__len__() - 100, 100))
+    train_dataset, test_dataset = data.random_split(dataset, (len(dataset) - 100, 100))
     train_iter = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                                              num_workers=num_workers, drop_last=True) # add drop_last to prevent error when BN size == 1, ValueError: Expected more than 1 value per channel when training, got input size torch.Size([1, 42])
     test_iter = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
@@ -166,9 +166,8 @@ class CsvDataset(data.Dataset):
                 on a sample.
         """
         self.data_count = 0
-        x = np.zeros([1, 11, 11], dtype=float)
-        y = np.zeros([6], dtype=float)
-        y[0] = 1
+        x_list = []
+        y_list = []
         self.result_dict = {'Fail': 0, 'Pass': 1, 'Vol': 2, 'Freq': 3, 'Marginal': 4, 'Hole': 5}
         # self.result_dict = {'Fail':                   [1, 0, 0, 0, 0, 0],
         #                     'Pass':                   [0, 1, 0, 0, 0, 0],
@@ -194,8 +193,8 @@ class CsvDataset(data.Dataset):
                 tmp_x = self.convert_SHM_data(tmp_x)
                 tmp_x = tmp_x[None, :, :]
 
-                y = np.vstack((y, tmp_y))
-                x = np.vstack((x, tmp_x))
+                y_list.append(tmp_y)
+                x_list.append(tmp_x)
                 self.data_count += 1
                 if self.data_count == 599:
                     print("OK")
@@ -204,8 +203,8 @@ class CsvDataset(data.Dataset):
                 go = False
         print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
-        y = y.reshape(y.shape[0], y.shape[1])
-        x = x.reshape(-1, 1, 11, 11)
+        y = np.array(y_list)
+        x = np.vstack(x_list)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
         self.Y_train = torch.tensor(y, dtype=torch.float)
