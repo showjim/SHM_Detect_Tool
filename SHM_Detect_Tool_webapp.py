@@ -67,10 +67,64 @@ class Application():
             send_log("Training complete.")
 
 
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store the password.
+        else:
+            st.session_state["password_correct"] = False
+
+    # Return True if the password is validated.
+    if st.session_state.get("password_correct", False) or st.secrets["password"] == "":
+        return True
+
+    # Show input for password.
+    st.text_input(
+        "Password", type="password", on_change=password_entered, key="password"
+    )
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
+
+
 def main(app):
     st.set_page_config(page_title="SHM Detect Tool",  # page_icon=":material/robot_2:",
                        layout='wide', initial_sidebar_state='auto')
-    st.title('SHM Detect Tool Webapp V' + __version__)
+    st.title(f'{__version__}')
+    st.caption('Powered by Streamlit, written by Chao Zhou')
+    st.subheader("", divider='rainbow')
+
+    with st.expander("Disclaimer", True):
+        st.warning("""The developer of this efficiency tool has taken all reasonable measures to ensure its quality and functionality. However, it is provided "as is" and the developer makes no representations or warranties of any kind, express or implied, as to its accuracy, reliability, or suitability for a particular purpose.
+
+The user assumes all risks associated with the use of this tool, and the developer will not be liable for any damages, including but not limited to direct, indirect, special, incidental, or consequential damages, arising out of the use or inability to use this tool.
+
+The developer welcomes feedback and bug reports from users. If you encounter any issues or have any suggestions, please contact me at Teams. Your input will help us improve the tool and provide a better user experience.
+
+By using this tool, you acknowledge that you have read and understood this disclaimer and agree to be bound by its terms.""",
+                   icon="⚠️")
+
+    if not check_password():
+        st.stop()  # Do not continue if check_password is not True.
+
+    work_path = os.path.abspath('.')
+    WorkPath = os.path.join(work_path, "workDir")
+    if not os.path.exists(WorkPath):
+        os.mkdir(WorkPath)
+
+    # Sidebar for menu options
+    with st.sidebar:
+        st.header("Other Tools")
+        st.page_link("http://taishanstone:8501", label="Check INFO Tool", icon="1️⃣")
+        st.page_link("http://taishanstone:8502", label="Pattern Auto Edit Tool", icon="2️⃣")
+        st.header("Help")
+        if st.button("About"):
+            st.info(
+                "Thank you for using!\nCreated by Chao Zhou.\nAny suggestions please mail zhouchao486@gmail.com]")
 
     # Session state initialization
     if "shm_detect_logprint" not in st.session_state:
@@ -84,32 +138,30 @@ def main(app):
     if "FilePaths" not in st.session_state:
         st.session_state["FilePaths"] = []
 
-    st.subheader('Step 1. Upload Config file', divider="violet")
-    uploaed_config = st.file_uploader("Upload config JSON file", type="json",
-                                       accept_multiple_files=False,
-                                       key="config_uploader")
-    if uploaed_config:
-        config_details = json.load(uploaed_config)
+    # Main UI Components
+    st.subheader('Step 1. Upload Config Setting')
+    json_file = st.file_uploader("Upload JSON", type=["json"], )
+    if json_file:
+        # Load config values
+        config_details = json.load(json_file)
         st.session_state["JsonConfig"] = config_details
-        st.write(f"✅ Config loaded: {uploaed_config.name}")
         st.json(config_details)
 
-    st.subheader('Step 2. Upload Shmoo log file(s)', divider="violet")
-    uploaded_files = st.file_uploader("Upload Shmoo log file(s)", type=["txt", "log"],
-                                      accept_multiple_files=True,
-                                      key="file_uploader")
-    if uploaded_files:
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            # Save uploaded file to local temp path
-            uploaded_path = os.path.join(os.getcwd(), uploaded_file.name)
-            with open(uploaded_path, 'wb') as f:
-                f.write(uploaded_file.getbuffer())
-            uploaded_paths.append(uploaded_path)
-        if uploaded_paths:
-            st.session_state.FilePaths = uploaded_paths
-            for p in uploaded_paths:
-                st.write(f"✅ {Path(p).name} uploaded")
+    st.subheader('Step 2. Pre-process Shmoo to CSV format')
+    file_paths = st.file_uploader("Upload Shmoo Log", type=["txt"], accept_multiple_files=True)
+    if st.button("Upload Shmoo Log"):
+        if file_paths is not None and len(file_paths) > 0:
+            # save file
+            with st.spinner('Reading file'):
+                uploaded_paths = []
+                for file_path in file_paths:
+                    uploaded_path = os.path.join(WorkPath, file_path.name)
+                    uploaded_paths.append(uploaded_path)
+                    with open(uploaded_path, mode="wb") as f:
+                        f.write(file_path.getbuffer())
+                if os.path.exists(uploaded_path) == True:
+                    st.session_state.FilePaths = uploaded_paths
+                    st.write(f"✅ {Path(uploaded_path).name} uploaded")
 
     with st.expander("Run Logs"):
         log_text_area = st.empty()
