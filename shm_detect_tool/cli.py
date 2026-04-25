@@ -12,6 +12,7 @@ import argparse
 import json
 import sys
 import os
+from importlib.metadata import version as _pkg_version
 
 from shm_detect_tool import backend as shm_backend
 
@@ -19,6 +20,13 @@ from shm_detect_tool import backend as shm_backend
 BUNDLE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_MODEL = os.path.join(BUNDLE_DIR, 'state_dict.pth')
 DEFAULT_CONFIG = os.path.join(BUNDLE_DIR, 'SHM_keywords_setting.json')
+
+
+def _get_version():
+    try:
+        return _pkg_version("shm-detect-tool")
+    except Exception:
+        return "0.8.0"
 
 
 def cmd_train(args):
@@ -79,6 +87,8 @@ def main():
         prog='shm-cli',
         description='SHM Detect Tool — Shmoo log analysis CLI',
     )
+    parser.add_argument("--version", "-V", action="version",
+                        version=f"%(prog)s {_get_version()}")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     subparsers.required = True
 
