@@ -41,7 +41,12 @@ def get_all_site_nums(each_file: str, site_keyword: str) -> List[str]:
     with open(each_file, 'r', encoding='utf-8') as f:
         for each_line in f.readlines():
             if site_keyword != "" and site_keyword in each_line:
-                site_info.append(int(each_line[len(site_keyword):].strip()))
+                # Extract number after keyword position (robust for all formats)
+                idx = each_line.find(site_keyword)
+                after = each_line[idx + len(site_keyword):]
+                match = re.search(r'\d+', after)
+                if match:
+                    site_info.append(int(match.group()))
 
     unique_site_info = list(set(site_info))
     str_site = ''
