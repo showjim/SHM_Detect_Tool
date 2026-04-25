@@ -205,6 +205,7 @@ class CsvDataset(data.Dataset):
         # Reshape the data
         y = np.array(y_list)
         x = np.vstack(x_list)
+        x = x.reshape(-1, 1, 11, 11)
 
         self.X_train = torch.tensor(x, dtype=torch.float)
         self.Y_train = torch.tensor(y, dtype=torch.float)
