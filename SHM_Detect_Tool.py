@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import *
 import qtawesome as qta
 import shm_backend
 
-__version__ = 'SHM Detect Tool Beta V0.7.20'
+__version__ = 'SHM Detect Tool Beta V0.8.0'
 __author__ = 'zhouchao486@gmail.com'
 
 
