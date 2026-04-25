@@ -487,7 +487,6 @@ class Application(QWidget):
             worksheet.write_row(0, 0, ['Instance', '', '', '','', 'Site Index', 'Result Symbol', 'Result'])
             row = 1
             col = 0
-            last_shm = None
             for title, shm in zip(titles, shms):
                 info_line = title.split(':')
                 info_line[1:1] = [''] * 3
@@ -498,11 +497,7 @@ class Application(QWidget):
                     worksheet.write_row(row, 0, shms[shm][i])
                     worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                     row += 1
-                last_shm = shm
-
-                # row += shm.size(1)
-            if last_shm is not None:
-                col = len(shms[last_shm][-1])
+                    col = max(col, len(shms[shm][i]))
             worksheet.conditional_format(0, 0, row, col,
                                          {'type': 'cell', 'criteria': 'equal to',
                                           'value': '"."', 'format': format_2XXX})

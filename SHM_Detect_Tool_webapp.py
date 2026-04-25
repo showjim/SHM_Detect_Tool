@@ -229,6 +229,7 @@ class Application():
                     iColumn = (siteCnt - 1) * interval_columns
                     worksheet.write_row(0, iColumn, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
                     row = 1
+                    col = 0
                     for title, shm in zip(titles, shms):
                         info_line = title.split(':')
                         if info_line[2] != selected_site:
@@ -241,10 +242,10 @@ class Application():
                             worksheet.write_row(row, iColumn, shms[shm][i])
                             worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                             row += 1
+                            col = max(col, len(shms[shm][i]))
 
                         # row += shm.size(1)
                     if row > 1:
-                        col = len(shms[shm][i - 1])
                         worksheet.conditional_format(0, iColumn, row, col+iColumn,
                                                      {'type': 'cell', 'criteria': 'equal to',
                                                       'value': '"."', 'format': format_2XXX})
@@ -255,7 +256,6 @@ class Application():
                 worksheet.write_row(0, 0, ['Instance', '', '', '', '', 'Site Index', 'Result Symbol', 'Result'])
                 row = 1
                 col = 0
-                last_shm = None
                 for title, shm in zip(titles, shms):
                     info_line = title.split(':')
                     info_line[1:1] = [''] * 3
@@ -266,11 +266,9 @@ class Application():
                         worksheet.write_row(row, 0, shms[shm][i])
                         worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
                         row += 1
-                    last_shm = shm
+                        col = max(col, len(shms[shm][i]))
 
                     # row += shm.size(1)
-                if last_shm is not None:
-                    col = len(shms[last_shm][-1])
                 worksheet.conditional_format(0, 0, row, col,
                                              {'type': 'cell', 'criteria': 'equal to',
                                               'value': '"."', 'format': format_2XXX})
