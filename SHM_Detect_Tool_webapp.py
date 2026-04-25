@@ -137,8 +137,30 @@ class Application():
                             shm_start_flag = False
                             shm_body_found_flag = False
                             # need add X-axis here
-                            x_list = line.split()
-                            self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
+                            if keyword_y_axis_pos == "right":
+                                # Vertical X-axis: collect all digit/dot/unit rows and transpose
+                                axis_rows = [line.strip()]
+                                while True:
+                                    next_line = buffer.readline()
+                                    if len(next_line) == 0:
+                                        break
+                                    stripped = next_line.strip()
+                                    if not stripped or 'Axis' in stripped:
+                                        break
+                                    axis_rows.append(stripped)
+                                # Transpose columns to build X-axis values
+                                num_cols = max(len(r) for r in axis_rows)
+                                x_values = []
+                                for col_idx in range(num_cols):
+                                    value = ''
+                                    for row in axis_rows:
+                                        if col_idx < len(row) and row[col_idx] != ' ':
+                                            value += row[col_idx]
+                                    x_values.append(value)
+                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_values)
+                            else:
+                                x_list = line.split()
+                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
 
                         if shm_body_found_flag:
                             tmp = res.string.split()
