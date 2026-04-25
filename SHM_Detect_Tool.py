@@ -8,7 +8,6 @@
 ###################################################
 import torch
 import re, sys, json
-import xlsxwriter
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
@@ -16,7 +15,7 @@ from Source import src_pytorch_public as src
 # import SHM_keywords_setting as setting
 from PyQt5.QtWidgets import *
 import qtawesome as qta
-import pandas as pd
+import shm_backend
 
 __version__ = 'SHM Detect Tool Beta V0.7.20'
 __author__ = 'zhouchao486@gmail.com'
@@ -26,7 +25,6 @@ class Application(QWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.setupUI()
-        self.result_dict = {}
         self.filename = ''
 
     def setupUI(self):
@@ -134,420 +132,87 @@ class Application(QWidget):
                 pass
 
     def read_shm_log(self, filename):
-
-        self.result_dict = {}
-        # Load config values
-        with open(r'SHM_keywords_setting.json') as config_file:
-            config_details = json.load(config_file)
-        keyword_site = config_details["keyword_site"] #'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
-        keyword_item = config_details["keyword_item"] #'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
-        keyword_start = config_details["keyword_start"] #'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
-        keyword_end = config_details["keyword_end"] #'Tcoef(%)'
-        keyword_pass = config_details["keyword_pass"] #'\+'#'P|\*' #'\+'
-        keyword_fail = config_details["keyword_fail"] #'\-|E'#'\.|#' #'\-'
-        keyword_y_axis_pos = config_details["keyword_y_axis_pos"] #"right" #"left"
-
-        # # py setting file, cannot modify setting realtime
-        # import SHM_keywords_setting as setting
-        # keyword_site = setting.keyword_site # 'Site' #'DEVICE_NUMBER:' #'Site:' #'DEVICE_NUMBER:'
-        # keyword_item = setting.keyword_item  # 'Test Name' #'Test Name' #'_SHM:' #'TestSuite = '
-        # keyword_start = setting.keyword_start  # 'Tcoef(AC Spec)' #"Tcoef(AC Spec)" #'Tcoef(%)'
-        # keyword_end = setting.keyword_end  # 'Tcoef(%)'
-        # keyword_pass = setting.keyword_pass  # '\+'#'P|\*' #'\+'
-        # keyword_fail = setting.keyword_fail  # '\-|E'#'\.|#' #'\-'
-        # keyword_y_axis_pos = setting.keyword_y_axis_pos  # "right" #"left"
-
-        new_shm_flag = False
-        new_site_flag = False
-        shm_start_flag = False
-        shm_body_found_flag = False
+        """Parse shmoo log → CSV. Delegates to backend."""
         try:
-            with open(filename, 'r') as buffer:
-                while True:
-                    line = buffer.readline()
-                    if keyword_item in line:#line.startswith('FC_') and line.endswith('_SHM:\n'):
-                        cur_instance = line[0:-1] + ":"
-                        new_shm_flag = True
-                        new_site_flag = False
-                        continue
-                    if keyword_site in line and new_shm_flag == True:#('Site:'):
-                        res = re.search(r'\d+', line)
-                        if res:
-                            cur_site_index = res.group() + ',' * 100 #make this head larger than the body
-                        else:
-                            # assume all right side y_axis is from CHAR studio default output
-                            """
-                            Site           Pattern(s)          X Pin(s)       Slow Axis Value     
-                            0              top_AA_Scan_stuck_s *              N/A                 
-                                 
-                                              Y Axis: Tcoef(AC Spec)
-                                 +++++++++++  1.500  
-                                 ++++++-++++  1.400  
-                                 +++++++++++  1.300  
-                                 +++++++++-+  1.200  
-                                 ++++++++++-  1.100  
-                                 +++++++----  1.000  
-                                 -++++++++++  900.000 m
-                                 --+++++++++  800.000 m
-                                 ----++++++-  700.000 m
-                                 ------++-++  600.000 m
-                                 -----------  500.000 m
-                                 88899000000
-                                 04826000000
-                                 00000111111
-                                 ...........
-                                 00000000112
-                                 00000048260
-                                 00000000000
-                                 mmmmm      
-                                 X Axis: Vcoef(DC Spec)
-                            """
-                            if keyword_y_axis_pos == "right":
-                                line = buffer.readline()
-                                res = re.search(r'\d+', line)
-                            if res:
-                                cur_site_index = res.group() + ',' * 100 #make this head larger than the body
-                            else:
-                                cur_site_index = '' + ',' * 100 #make this head larger than the body
-                                print("Warning: no site index found!")
-                        new_site_flag = True
-                        continue
-                    if keyword_start in line and new_shm_flag == True and new_site_flag == True:
-                        shm_start_flag = True
-                        self.result_dict[cur_instance + cur_site_index] = []
-                        continue
+            with open(r'SHM_keywords_setting.json') as config_file:
+                config_details = json.load(config_file)
 
-                    if new_shm_flag and new_site_flag and shm_start_flag:
-                        res = re.search(r'(\s*([P*.#+\-]))+', line)
-                        res_axis = re.findall(r'\d+\.\d+', line)
-                        if (res is not None) and shm_body_found_flag == False:
-                            shm_body_found_flag = True
-                        elif (res is not None) and len(res_axis) > 0:
-                            if len(res_axis) > 1:
-                                new_shm_flag = False
-                                new_site_flag = False
-                                shm_start_flag = False
-                                shm_body_found_flag = False
-                                # need add Y-axis here
-                                x_list = line.split()
-                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
-                        elif (res is None) and shm_body_found_flag:
-                            new_shm_flag = False
-                            new_site_flag = False
-                            shm_start_flag = False
-                            shm_body_found_flag = False
-                            # need add X-axis here
-                            if keyword_y_axis_pos == "right":
-                                # Vertical X-axis: collect all digit/dot/unit rows and transpose
-                                axis_rows = [line.strip()]
-                                while True:
-                                    next_line = buffer.readline()
-                                    if len(next_line) == 0:
-                                        break
-                                    stripped = next_line.strip()
-                                    if not stripped or 'Axis' in stripped:
-                                        break
-                                    axis_rows.append(stripped)
-                                # Transpose columns to build X-axis values
-                                num_cols = max(len(r) for r in axis_rows)
-                                x_values = []
-                                for col_idx in range(num_cols):
-                                    value = ''
-                                    for row in axis_rows:
-                                        if col_idx < len(row) and row[col_idx] != ' ':
-                                            value += row[col_idx]
-                                    x_values.append(value)
-                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_values)
-                            else:
-                                x_list = line.split()
-                                self.result_dict[cur_instance + cur_site_index].append([keyword_start] + x_list)
+            csv_path, _ = shm_backend.read_shm_log(filename, config_details)
+            print(f"CSV written: {csv_path}")
 
-                        if shm_body_found_flag:
-                            tmp = res.string.split()
-                            if keyword_y_axis_pos == "right":
-                                if (re.search(keyword_pass, tmp[0]) is not None) or (
-                                        re.search(keyword_fail, tmp[0]) is not None):
-                                    tmp[0] = re.sub(keyword_pass, "P", tmp[0])
-                                    tmp[0] = re.sub(keyword_fail, ".", tmp[0])
-                                    if len(tmp) > 1:
-                                        if len(tmp[0]) > 1:
-                                            tmp = [''.join(tmp[1:])] + list(tmp[0])
-                            else:
-                                if (re.search(keyword_pass, tmp[-1]) is not None) or (
-                                        re.search(keyword_fail, tmp[-1]) is not None):
-                                    tmp[-1] = re.sub(keyword_pass, "P", tmp[-1])
-                                    tmp[-1] = re.sub(keyword_fail, ".", tmp[-1])
-                                    if len(tmp) > 1:
-                                        if len(tmp[-1]) > 1:
-                                            tmp = [''.join(tmp[0:-1])] + list(tmp[-1])
-                            self.result_dict[cur_instance + cur_site_index].append(tmp)#[1:])
-
-                    if len(line) == 0:
-                        break
         except Exception as e:
             QMessageBox.information(
                 self, 'Error', e.__str__(),
                 QMessageBox.Ok)
 
-        with open(self.filename + '_tmp_file.csv', 'w') as f:
-            for key, values in self.result_dict.items():
-                f.write('{0}\n'.format(key))
-                for val in values:
-                    f.write(','.join(i for i in val))
-                    f.write('\n')
-            # [f.write('{0}\n{1}\n'.format(key, value)) for key, value in self.result_dict.items()]
-        # self.cnn_net('test')
-
     def cnn_net(self, mode='training'):
-        # %% define&initial module
-        # num_inputs, num_outputs, num_hiddens = 121, 2, 64  # 784, 10, 256
-        # net = nn.Sequential(
-        #     d2l.FlattenLayer(),
-        #     nn.Linear(num_inputs, num_hiddens),
-        #     nn.ReLU(),
-        #     nn.Linear(num_hiddens, num_outputs),
-        # )
-        # for params in net.parameters():
-        #     init.normal_(params, mean=0, std=0.01)
-
-        # Check that MPS is available
-        device = "mps" if torch.backends.mps.is_available() else "cpu"
-        print(f"Using device: {device}")
-
-        # net = d2l.LeNet()
-        net = src.AlexNet()
-        # net.to(device)
-
-        # print parameters count
-        pytorch_total_params = sum(p.numel() for p in net.parameters())
-        print('neural network architecture has ', pytorch_total_params, ' parameters.')
-        pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-        print('neural network architecture has ', pytorch_total_params, ' trainable parameters.')
-
         if mode == 'training':
-            net.train()
-            # %% load data
-            batch_size = 100  # 256
-            filename = r'custom_SHM_data.csv'
-            train_iter, test_iter = src.load_custom_shm_data(batch_size,
-                                                             filename)  # d2l.load_data_fashion_mnist(batch_size)
-            # %% define loss function
-            # loss = torch.nn.CrossEntropyLoss()
-            # nn.BCEWithLogitsLoss takes the raw logits of your model (without any non-linearity) and applies the sigmoid internally
-            loss = torch.nn.MultiLabelSoftMarginLoss() #MultiLabelSoftMarginLoss()  # BCEWithLogitsLoss()  # BCELoss() #MultiLabelSoftMarginLoss() #BCELoss()
+            # Delegate training to backend
+            net, test_iter = shm_backend.train_model()
 
-            # %% optimise function
-            lr = 0.0014
-            # optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-            optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0004)
-
-            # %% run training
-            num_epochs = 100  # 320
-            src.train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, None, lr, optimizer)
-
-            # %% save the state
-            torch.save(net.state_dict(), './state_dict.pth')
-
-            # %% show result
+            # GUI-specific: show validation plots
             net.eval()
-            # print(net.training)
-            X, y = next(iter(test_iter)) #.__next__()# .next()
-            # X = X.to(device)
-            true_labels = src.get_custom_shm_labels(y.numpy(), 'E')  # d2l.get_fashion_mnist_labels(y.numpy())
+            X, y = next(iter(test_iter))
+            true_labels = src.get_custom_shm_labels(y.numpy(), 'E')
             y_hat = net(X)
             y_hat = src.reformat_output(y_hat)
-            # y_hat[y_hat >= 0.5] = 1
-            # y_hat[y_hat < 0.5] = 0
             pred_labels = src.get_custom_shm_labels(
-                y_hat.detach().numpy(),
-                'A')  # d2l.get_fashion_mnist_labels(net(X).argmax(dim=1).numpy()) net(X).detach().numpy()
+                y_hat.detach().numpy(), 'A')
             titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
             src.show_shm_fig(X[0:100], titles[0:100])
 
         elif mode == 'test':
-            # %% load state dict
+            # Load model via backend helpers
+            net = src.AlexNet()
             net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
-            # %% show result
             net.eval()
-            # net.train()
-            filename = self.analyse_shm_path_let.text()#self.filename + '_tmp_file.csv'
+
+            filename = self.analyse_shm_path_let.text()
             titles = []
             titles_plot = []
-            raw_dict = {}
-            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(filename) # #'my_file.csv')
+            shmoo_body, shmoo_title, shmoo_dict = shm_backend.read_shmoo_csv(filename)
             _, figs = plt.subplots(5, 10, figsize=(12, 8))
             plt.tight_layout()
             figs = figs.flatten()
             for i in range(len(shmoo_title)):
-                test_iter, tmp_raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
-                # test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[0], shmoo_title[0], 'P')
-                X, y = next(iter(test_iter)) #.next()
+                test_iter, tmp_raw_dict = shm_backend.convert_shm_to_tensor(
+                    filename, -1, shmoo_body[i], shmoo_title[i], 'S')
+                X, y = next(iter(test_iter))
                 y_hat = net(X)
                 y_hat = src.reformat_output(y_hat)
-                # y_hat[y_hat >= 0.5] = 1
-                # y_hat[y_hat < 0.5] = 0
                 true_labels = y[0]
                 pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-                titles_plot.append(true_labels + '\n' + pred_labels[0]) # = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-                # src.show_shm_fig(X[0:50], titles[0:50])
-                titles.append(true_labels + ':' + pred_labels[0]) #([true + ':' + pred for true, pred in zip(true_labels, pred_labels)])
-                raw_dict.update(tmp_raw_dict)
+                titles_plot.append(true_labels + '\n' + pred_labels[0])
+                titles.append(true_labels + ':' + pred_labels[0])
                 if i < 50:
                     figs[i].imshow(X[0].view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
                     figs[i].set_title(titles_plot[-1])
                     figs[i].axes.get_xaxis().set_visible(False)
                     figs[i].axes.get_yaxis().set_visible(False)
             if titles:
-                self.generate_shm_report_xlsx(titles, shmoo_dict, filename)
+                shm_backend.generate_shm_report_xlsx(titles, shmoo_dict, filename)
             plt.show()
 
         else:
-            # %% load state dict
-            net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
-            # %% show result
-            net.eval()
-
-            i = 5
+            # Eval mode — delegate to backend, visualize activations in GUI
             filename = self.analyse_shm_path_let.text()
-            shmoo_body, shmoo_title, shmoo_dict = self.read_shmoo_csv(filename)#'my_file.csv')
-            # test_iter, raw_dict = self.convert_shm_to_tensor(-1, mode='P')
-            test_iter, raw_dict = self.convert_shm_to_tensor(-1, shmoo_body[i], shmoo_title[i], 'S')
-            # X, y = iter(test_iter).next()
-            # y_hat = net(X)
-            # y_hat[y_hat > 0.5] = 1
-            # y_hat[y_hat <= 0.5] = 0
-            # true_labels = y[0]
-            channel_count_list = [32, 16, 8, 4]
             text = self.qLineEdit.text()
             channel_index = int(text)
-            # Extract the layer
-            conv_out = LayerActivations(list(net._modules.items()), channel_index)
-            # [3:4] is to choose Index 4 shm
-            # img = next(iter(test_iter))[0][0:1]
-            img, y = next(iter(test_iter))# next()
 
-            # imshow(img)
-            o = net(img)
-            conv_out.remove()  #
-            act = conv_out.features  # act is the feature of current layer
+            act, channel_count_list = shm_backend.eval_model(
+                csv_file=filename,
+                model_path='./state_dict.pth',
+                shmoo_index=5,
+                channel_index=channel_index,
+            )
 
-            # Visualization output
+            # GUI-specific: Visualization output
             fig = plt.figure()
-            # fig.subplots_adjust(left=0, right=1, bottom=0, top=0.8, hspace=0, wspace=0.2)
             total_count = channel_count_list[channel_index]
             for i in range(total_count):
                 ax = fig.add_subplot(int(total_count / 4), 4, i + 1, xticks=[], yticks=[])
                 ax.imshow(act[0][i].detach().numpy(), cmap="gray")
-
             plt.show()
-
-    def convert_shm_to_tensor(self, batch_cnt, shmoo_body=None, shmoo_title=None, mode='P'):
-        if sys.platform.startswith('win'):
-            num_workers = 0  # 0
-        else:
-            num_workers = 0 #4
-        if shmoo_body is None:
-            shmoo_body = []
-        if shmoo_title is None:
-            shmoo_title = []
-        if mode == 'P':
-            dataset = src.CsvDataset_Test(self.filename + '_tmp_file.csv')#'my_file.csv')
-        else:
-            dataset = src.CsvDataset_Test_Serial(shmoo_body, shmoo_title)
-        if batch_cnt < 0:
-            batch_size = len(dataset)  # len(self.result_dict)
-        else:
-            batch_size = batch_cnt
-        test_iter = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-
-        return test_iter, dataset.raw_dict
-
-    def read_shmoo_csv(self, csv_file):
-        tmpX = []
-        tmpY = []
-        tmpZ = []
-        X = []
-        Y = []
-        Z = {}
-        self.csv_df = pd.read_csv(csv_file, header=None, engine='python')
-        for index, row in self.csv_df.iterrows():
-            if ':' in row[0]:
-                if len(tmpX) > 0:
-                    X.append(tmpX)
-                    Y.append(tmpY)
-                    Z[tmpY] = tmpZ
-                tmpY = row[0] #self.csv_df.iloc[0].dropna().to_list()
-                tmpX = []
-                tmpZ = []
-            elif not("P" in row.dropna().to_list()) and not("." in row.dropna().to_list()):
-                #skip
-                tmpZ.append(row.dropna().to_list())
-                continue
-            else:
-                tmpX.append(row.dropna().to_list()[1:])
-                tmpZ.append(row.dropna().to_list())
-        X.append(tmpX)
-        Y.append(tmpY)
-        Z[tmpY] = tmpZ
-        return X, Y, Z
-
-    def generate_shm_report_xlsx(self, titles, shms, filename):
-        report_name = filename + '_report.xlsx'
-        # In case someone has the file open
-        try:
-            # Create a workbook and add a  worksheet.
-            workbook = xlsxwriter.Workbook(report_name)
-            worksheet = workbook.add_worksheet('SHM Result')
-
-            # Light red
-            format_2XXX = workbook.add_format({'bg_color': '#FF0000'})
-            # Dark green
-            format_7XXX = workbook.add_format({'bg_color': '#008000'})
-
-            # Optimise xlsx output format
-            worksheet.outline_settings(True, False, True, False)
-            worksheet.write_row(0, 0, ['Instance', '', '', '','', 'Site Index', 'Result Symbol', 'Result'])
-            row = 1
-            col = 0
-            for title, shm in zip(titles, shms):
-                info_line = title.split(':')
-                info_line[1:1] = [''] * 3
-                worksheet.write_row(row, 0, info_line)
-                worksheet.set_row(row, None, None, {'collapsed': True})
-                row += 1
-                for i in range(len(shms[shm])):
-                    worksheet.write_row(row, 0, shms[shm][i])
-                    worksheet.set_row(row, None, None, {'level': 1, 'hidden': True})
-                    row += 1
-                    col = max(col, len(shms[shm][i]))
-            worksheet.conditional_format(0, 0, row, col,
-                                         {'type': 'cell', 'criteria': 'equal to',
-                                          'value': '"."', 'format': format_2XXX})
-            worksheet.conditional_format(0, 0, row, col,
-                                         {'type': 'cell', 'criteria': 'equal to',
-                                          'value': '"P"', 'format': format_7XXX})
-            workbook.close()
-            print('Xlsx file is written!')
-
-        except xlsxwriter.exceptions.FileCreateError:  # PermissionError:
-            print("Please close " + report_name.split('/')[-1])
-
-
-# Hook class, to extract output of each layer
-class LayerActivations:
-    features = None
-
-    def __init__(self, model, layer_num, backward=False):
-        if not backward:
-            self.hook = model[layer_num][1].register_forward_hook(self.hook_fn)
-        else:
-            self.hook = model[layer_num][1].register_backward_hook(self.hook_fn)
-
-    def hook_fn(self, module, input, output):
-        self.features = output
-
-    def remove(self):
-        self.hook.remove()
 
 
 if __name__ == '__main__':
