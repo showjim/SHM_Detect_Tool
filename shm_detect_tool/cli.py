@@ -12,6 +12,7 @@ import argparse
 import json
 import sys
 import os
+import traceback
 from importlib.metadata import version as _pkg_version
 
 from shm_detect_tool import backend as shm_backend
@@ -31,22 +32,35 @@ def _get_version():
 
 def cmd_train(args):
     """Handle the 'train' subcommand."""
-    print(f"Training with dataset: {args.dataset}")
-    net, test_iter = shm_backend.train_model(
-        dataset_path=args.dataset,
-        output_path=args.output,
-        epochs=args.epochs,
-        lr=args.lr,
-        batch_size=args.batch_size,
-    )
-    print(f"Training complete. Model saved to: {args.output}")
+    try:
+        print(f"Training with dataset: {args.dataset}")
+        net, test_iter = shm_backend.train_model(
+            dataset_path=args.dataset,
+            output_path=args.output,
+            epochs=args.epochs,
+            lr=args.lr,
+            batch_size=args.batch_size,
+        )
+        print(f"Training complete. Model saved to: {args.output}")
+    except FileNotFoundError as e:
+        print(f"Error: training dataset not found — {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error during training: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def cmd_analyse(args):
     """Handle the 'analyse' subcommand."""
-    # Load config
-    with open(args.config, 'r') as f:
-        config = json.load(f)
+    try:
+        with open(args.config, 'r') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: config file not found — {args.config}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: invalid JSON in config file — {e}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Analysing shmoo log: {args.log}")
     print(f"Using config: {args.config}")
@@ -54,32 +68,50 @@ def cmd_analyse(args):
     if args.gap != 'Disable':
         print(f"Parallel plot gap: {args.gap}")
 
-    report_path = shm_backend.analyse_shmoo(
-        log_path=args.log,
-        config=config,
-        model_path=args.model,
-        parallel_gap=args.gap,
-        cleanup_csv=True,
-    )
-    print(f"Report generated: {report_path}")
+    try:
+        report_path = shm_backend.analyse_shmoo(
+            log_path=args.log,
+            config=config,
+            model_path=args.model,
+            parallel_gap=args.gap,
+            cleanup_csv=True,
+        )
+        print(f"Report generated: {report_path}")
+    except FileNotFoundError as e:
+        print(f"Error: file not found — {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error during analysis: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def cmd_correlate(args):
     """Handle the 'correlate' subcommand."""
-    with open(args.config, 'r') as f:
-        config = json.load(f)
+    try:
+        with open(args.config, 'r') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: config file not found — {args.config}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: invalid JSON in config file — {e}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Correlating files: {args.files}")
     print(f"Sites: {args.sites if args.sites else '(all)'}")
     print(f"Column gap: {args.gap}")
 
-    report_path = shm_backend.correlate_char_logs(
-        file_paths=args.files,
-        config=config,
-        site_labels=args.sites,
-        gap=args.gap,
-    )
-    print(f"Correlation report generated: {report_path}")
+    try:
+        report_path = shm_backend.correlate_char_logs(
+            file_paths=args.files,
+            config=config,
+            site_labels=args.sites,
+            gap=args.gap,
+        )
+        print(f"Correlation report generated: {report_path}")
+    except Exception as e:
+        print(f"Error during correlation: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def main():
