@@ -12,6 +12,9 @@ from shm_detect_tool.Source.CharDataCorrelation import (
     getDatalogInfo,
 )
 
+BUNDLE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL = os.path.join(BUNDLE_DIR, 'shm_detect_tool', 'state_dict.pth')
+
 
 class Application():
     def __init__(self):
@@ -24,42 +27,18 @@ class Application():
         self.sites_in_log_list = sites_list
         return csv_path
 
-    def cnn_net(self, shm_csv_log_path, send_log, mode='test',
-                isParallelPlot='Disable', model_path='./state_dict.pth'):
-        """Run shmoo analysis. Delegates to backend for inference + report."""
+    def cnn_net(self, log_path, config, send_log, mode='test',
+                isParallelPlot='Disable', model_path=DEFAULT_MODEL):
+        """Run shmoo analysis. Delegates to backend."""
         if mode == 'test':
-            # Read CSV, run inference, generate report
-            shmoo_body, shmoo_title, shmoo_dict = shm_backend.read_shmoo_csv(
-                shm_csv_log_path)
-
-            import torch
-            from Source import src_pytorch_public as src
-            net = src.AlexNet()
-            net.load_state_dict(torch.load(model_path, weights_only=True))
-            net.eval()
-
-            pytorch_total_params = sum(p.numel() for p in net.parameters())
-            send_log(f'neural network architecture has {pytorch_total_params} parameters.')
-            pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-            send_log(f'neural network architecture has {pytorch_total_params} trainable parameters.')
-
-            titles = []
-            for i in range(len(shmoo_title)):
-                test_iter, _ = shm_backend.convert_shm_to_tensor(
-                    shm_csv_log_path, -1, shmoo_body[i], shmoo_title[i], 'S')
-                X, y = next(iter(test_iter))
-                y_hat = net(X)
-                y_hat = src.reformat_output(y_hat)
-                y_hat[y_hat >= 0.5] = 1
-                y_hat[y_hat < 0.5] = 0
-                true_labels = y[0]
-                pred_labels = src.get_custom_shm_labels(
-                    y_hat.detach().numpy(), 'A')
-                titles.append(true_labels + ':' + pred_labels[0])
-
-            report_name = shm_backend.generate_shm_report_xlsx(
-                titles, shmoo_dict, shm_csv_log_path, isParallelPlot,
-                self.sites_in_log_list, send_log)
+            report_name = shm_backend.analyse_shmoo(
+                log_path=log_path,
+                config=config,
+                model_path=model_path,
+                parallel_gap=isParallelPlot,
+                logger=send_log,
+                cleanup_csv=True,
+            )
             return report_name
 
         elif mode == 'training':
@@ -179,14 +158,14 @@ By using this tool, you acknowledge that you have read and understood this discl
                                          value="Disable"
                                          )
         if st.button('Analyse Shmoo Result'):
-            # """Convert Shmoo log to CSV"""
-            convt_csv_shm_file = app.read_shm_log(st.session_state["FilePaths"][-1], st.session_state["JsonConfig"],
-                                                  send_log)
-            st.session_state["csv_shm_file"] = convt_csv_shm_file
-            send_log(f"Convert Shmoo log to CSV format completed.")
-
-            # """run analyse Shmoo log action"""
-            report_name = app.cnn_net(st.session_state["csv_shm_file"], send_log, "test", isParallelPlot)
+            report_name = shm_backend.analyse_shmoo(
+                log_path=st.session_state["FilePaths"][-1],
+                config=st.session_state["JsonConfig"],
+                model_path=DEFAULT_MODEL,
+                parallel_gap=isParallelPlot,
+                logger=send_log,
+                cleanup_csv=True,
+            )
             st.session_state["shm_analyse_result"] = report_name
             send_log(f"Finish analysis!")
 

@@ -11,8 +11,7 @@ import numpy as np
 import torch.utils.data as data
 import torch.nn.functional as F
 
-# yes, I had an M1 device~~~
-device = "mps" if torch.backends.mps.is_available() else "cpu"
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
 
 def load_custom_shm_data(batch_size, root='~/Datasets/FashionMNIST'):
@@ -43,19 +42,16 @@ def evaluate_accuracy(data_iter, net):
     net.eval()
     # net.train()
     acc_sum, n, acc_sum_pf = 0.0, 0, 0.0
-    for X, y in data_iter:
-        # X = X.to(device)
-        # y = y.to(device)
-        # acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
-        y_hat = net(X)
-        y_hat = reformat_output(y_hat)
-        # y_hat[y_hat >= 0.5] = 1
-        # y_hat[y_hat < 0.5] = 0
-        check_result = torch.sum(y_hat == y, 1)
-        check_result_pf = torch.logical_and(y_hat[:, 0] == y[:, 0], y_hat[:, 1] == y[:, 1])
-        acc_sum += (check_result == 6).float().sum().item()
-        acc_sum_pf += check_result_pf.float().sum().item()
-        n += y.shape[0]
+    with torch.no_grad():
+        for X, y in data_iter:
+            X, y = X.to(device), y.to(device)
+            y_hat = net(X)
+            y_hat = reformat_output(y_hat)
+            check_result = torch.sum(y_hat == y, 1)
+            check_result_pf = torch.logical_and(y_hat[:, 0] == y[:, 0], y_hat[:, 1] == y[:, 1])
+            acc_sum += (check_result == 6).float().sum().item()
+            acc_sum_pf += check_result_pf.float().sum().item()
+            n += y.shape[0]
     net.train()
     return acc_sum / n, acc_sum_pf / n
 
@@ -74,8 +70,7 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
         # adjust_learning_rate(optimizer, epoch, lr)
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
-            # X = X.to(device)
-            # y = y.to(device)
+            X, y = X.to(device), y.to(device)
             y_hat = net(X)
             l = loss(y_hat, y)  # .sum()
             # Reset the grad
@@ -114,6 +109,8 @@ def train_network(net, train_iter, test_iter, loss, num_epochs, batch_size, para
 
 def reformat_output(y_hat):
     a, _ = torch.max(y_hat[:, 0:2], 1)
+    # Guard against division by zero when network is uncertain
+    a = a.clamp(min=1e-8)
     # process Pass/Fail label
     y_hat[:, 0] = y_hat[:, 0] / a
     y_hat[:, 1] = y_hat[:, 1] / a
@@ -196,10 +193,8 @@ class CsvDataset(data.Dataset):
                 y_list.append(tmp_y)
                 x_list.append(tmp_x)
                 self.data_count += 1
-                if self.data_count == 599:
-                    print("OK")
             except Exception as e:
-                print(type(e))
+                print(f"Error reading training data at sample {self.data_count}: {e}")
                 go = False
         print('The Training Data Set Count is: ', self.data_count)
         # Reshape the data
@@ -274,9 +269,9 @@ class CsvDataset_Test(data.Dataset):
                     x = np.vstack((x, tmp_x))
                 self.data_count += 1
             except Exception as e:
-                print(type(e))
+                print(f"Error reading test data at sample {self.data_count}: {e}")
                 go = False
-        print('The Training Data Set Count is: ', self.data_count)
+        print('The Test Data Set Count is: ', self.data_count)
         # Reshape the data
         # y = y.reshape(y.shape[0], y.shape[1])
         # x = x.reshape(-1, 1, 11, 11)

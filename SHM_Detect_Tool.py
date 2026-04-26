@@ -7,7 +7,7 @@
 # A Tool to Detect the Result of SHM              #
 ###################################################
 import torch
-import re, sys, json
+import re, sys, json, os
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
@@ -16,6 +16,9 @@ from PyQt5.QtWidgets import *
 import qtawesome as qta
 from shm_detect_tool import backend as shm_backend
 from importlib.metadata import version as _pkg_version
+
+BUNDLE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shm_detect_tool')
+DEFAULT_MODEL = os.path.join(BUNDLE_DIR, 'state_dict.pth')
 
 
 def _get_version():
@@ -170,9 +173,9 @@ class Application(QWidget):
             src.show_shm_fig(X[0:100], titles[0:100])
 
         elif mode == 'test':
-            # Load model via backend helpers
-            net = src.AlexNet()
-            net.load_state_dict(torch.load('./state_dict.pth', weights_only=True))
+            device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+            net = src.AlexNet().to(device)
+            net.load_state_dict(torch.load(DEFAULT_MODEL, weights_only=True))
             net.eval()
 
             filename = self.analyse_shm_path_let.text()
@@ -182,21 +185,23 @@ class Application(QWidget):
             _, figs = plt.subplots(5, 10, figsize=(12, 8))
             plt.tight_layout()
             figs = figs.flatten()
-            for i in range(len(shmoo_title)):
-                test_iter, tmp_raw_dict = shm_backend.convert_shm_to_tensor(
-                    filename, -1, shmoo_body[i], shmoo_title[i], 'S')
-                X, y = next(iter(test_iter))
-                y_hat = net(X)
-                y_hat = src.reformat_output(y_hat)
-                true_labels = y[0]
-                pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-                titles_plot.append(true_labels + '\n' + pred_labels[0])
-                titles.append(true_labels + ':' + pred_labels[0])
-                if i < 50:
-                    figs[i].imshow(X[0].view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
-                    figs[i].set_title(titles_plot[-1])
-                    figs[i].axes.get_xaxis().set_visible(False)
-                    figs[i].axes.get_yaxis().set_visible(False)
+            with torch.no_grad():
+                for i in range(len(shmoo_title)):
+                    test_iter, tmp_raw_dict = shm_backend.convert_shm_to_tensor(
+                        filename, -1, shmoo_body[i], shmoo_title[i], 'S')
+                    X, y = next(iter(test_iter))
+                    X = X.to(device)
+                    y_hat = net(X)
+                    y_hat = src.reformat_output(y_hat)
+                    true_labels = y[0]
+                    pred_labels = src.get_custom_shm_labels(y_hat.cpu().numpy(), 'A')
+                    titles_plot.append(true_labels + '\n' + pred_labels[0])
+                    titles.append(true_labels + ':' + pred_labels[0])
+                    if i < 50:
+                        figs[i].imshow(X[0].cpu().view((X[0].shape[1], X[0].shape[2])).numpy(), cmap='RdYlGn')
+                        figs[i].set_title(titles_plot[-1])
+                        figs[i].axes.get_xaxis().set_visible(False)
+                        figs[i].axes.get_yaxis().set_visible(False)
             if titles:
                 shm_backend.generate_shm_report_xlsx(titles, shmoo_dict, filename)
             plt.show()

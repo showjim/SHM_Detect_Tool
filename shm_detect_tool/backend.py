@@ -410,10 +410,11 @@ def train_model(dataset_path: str = 'custom_SHM_data.csv',
     Returns:
         Tuple of (trained_net, test_iter) for optional visualization.
     """
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     logger(f"Using device: {device}")
 
     net = src.AlexNet()
+    net = net.to(device)
 
     pytorch_total_params = sum(p.numel() for p in net.parameters())
     logger(f'neural network architecture has {pytorch_total_params} parameters.')
@@ -462,24 +463,27 @@ def analyse_shmoo(log_path: str, config: dict,
     logger("Convert Shmoo log to CSV format completed.")
 
     # Step 2: Load model
-    net = src.AlexNet()
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    net = src.AlexNet().to(device)
     net.load_state_dict(torch.load(model_path, weights_only=True))
     net.eval()
 
     # Step 3: Run inference on each shmoo
     shmoo_body, shmoo_title, shmoo_dict = read_shmoo_csv(csv_path)
     titles = []
-    for i in range(len(shmoo_title)):
-        test_iter, _ = convert_shm_to_tensor(
-            csv_path, -1, shmoo_body[i], shmoo_title[i], 'S')
-        X, y = next(iter(test_iter))
-        y_hat = net(X)
-        y_hat = src.reformat_output(y_hat)
-        y_hat[y_hat >= 0.5] = 1
-        y_hat[y_hat < 0.5] = 0
-        true_labels = y[0]
-        pred_labels = src.get_custom_shm_labels(y_hat.detach().numpy(), 'A')
-        titles.append(true_labels + ':' + pred_labels[0])
+    with torch.no_grad():
+        for i in range(len(shmoo_title)):
+            test_iter, _ = convert_shm_to_tensor(
+                csv_path, -1, shmoo_body[i], shmoo_title[i], 'S')
+            X, y = next(iter(test_iter))
+            X = X.to(device)
+            y_hat = net(X)
+            y_hat = src.reformat_output(y_hat)
+            y_hat[y_hat >= 0.5] = 1
+            y_hat[y_hat < 0.5] = 0
+            true_labels = y[0]
+            pred_labels = src.get_custom_shm_labels(y_hat.cpu().numpy(), 'A')
+            titles.append(true_labels + ':' + pred_labels[0])
 
     # Step 4: Generate XLSX report
     report_path = generate_shm_report_xlsx(
@@ -532,7 +536,8 @@ def eval_model(csv_file: str, model_path: str = './state_dict.pth',
     Returns:
         Tuple of (activations_tensor, channel_count_list).
     """
-    net = src.AlexNet()
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    net = src.AlexNet().to(device)
     net.load_state_dict(torch.load(model_path, weights_only=True))
     net.eval()
 
@@ -545,6 +550,7 @@ def eval_model(csv_file: str, model_path: str = './state_dict.pth',
 
     conv_out = LayerActivations(list(net._modules.items()), channel_index)
     img, y = next(iter(test_iter))
+    img = img.to(device)
     o = net(img)
     conv_out.remove()
     act = conv_out.features
