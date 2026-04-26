@@ -1,2 +1,21 @@
 .idea/
 sample/
+workDir/
+__pycache__/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Cython generated
+*.so
+*.pyd
+*.c
+
+# macOS
+.DS_Store
+*.xlsx
+Shmoo_detect_project/*

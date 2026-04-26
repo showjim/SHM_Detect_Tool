@@ -2,7 +2,7 @@
 
 ## Overview
 
-`shm_cli.py` is a command-line interface for the SHM Detect Tool.  
+`shm-detect` is a command-line interface for the SHM Detect Tool.  
 It provides three subcommands for shmoo log analysis workflows:
 
 | Command | Description |
@@ -29,16 +29,16 @@ It provides three subcommands for shmoo log analysis workflows:
 
 ```bash
 # Show top-level help
-python shm_cli.py --help
+shm-detect --help
 
 # Analyse a shmoo log (most common use case)
-python shm_cli.py analyse --log shmoo.txt --config SHM_keywords_setting.json
+shm-detect analyse --log shmoo.txt --config SHM_keywords_setting.json
 
 # Train a new model
-python shm_cli.py train --dataset custom_SHM_data.csv
+shm-detect train --dataset custom_SHM_data.csv
 
 # Compare multiple CHAR logs
-python shm_cli.py correlate --files file1.txt file2.txt --config SHM_keywords_setting.json
+shm-detect correlate --files file1.txt file2.txt --config SHM_keywords_setting.json
 ```
 
 ---
@@ -50,7 +50,7 @@ python shm_cli.py correlate --files file1.txt file2.txt --config SHM_keywords_se
 Train a new AlexNet-based CNN model using a labeled shmoo dataset.
 
 ```bash
-python shm_cli.py train [OPTIONS]
+shm-detect train [OPTIONS]
 ```
 
 | Option | Default | Description |
@@ -65,13 +65,13 @@ python shm_cli.py train [OPTIONS]
 
 ```bash
 # Train with defaults (60 epochs)
-python shm_cli.py train
+shm-detect train
 
 # Quick smoke test (1 epoch)
-python shm_cli.py train --epochs 1 --output ./test_model.pth
+shm-detect train --epochs 1 --output ./test_model.pth
 
 # Full training with custom parameters
-python shm_cli.py train --dataset my_data.csv --epochs 100 --lr 0.001 --batch-size 64
+shm-detect train --dataset my_data.csv --epochs 100 --lr 0.001 --batch-size 64
 ```
 
 **Output:** A `.pth` model file saved to the specified `--output` path.
@@ -83,7 +83,7 @@ python shm_cli.py train --dataset my_data.csv --epochs 100 --lr 0.001 --batch-si
 Parse a shmoo log file (`.txt`) with a JSON config, run CNN inference, and generate an XLSX report with pass/fail highlighting.
 
 ```bash
-python shm_cli.py analyse --log <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
+shm-detect analyse --log <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
 ```
 
 | Option | Default | Description |
@@ -97,13 +97,13 @@ python shm_cli.py analyse --log <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
 
 ```bash
 # Basic analysis
-python shm_cli.py analyse --log sample/S2S_Shmoo_site0.txt --config SHM_keywords_setting.json
+shm-detect analyse --log sample/S2S_Shmoo_site0.txt --config SHM_keywords_setting.json
 
 # Use a custom model
-python shm_cli.py analyse --log shmoo.txt --config config.json --model custom_model.pth
+shm-detect analyse --log shmoo.txt --config config.json --model custom_model.pth
 
 # Enable parallel plot (multi-site side-by-side with 25-column gap)
-python shm_cli.py analyse --log shmoo.txt --config config.json --gap 25
+shm-detect analyse --log shmoo.txt --config config.json --gap 25
 ```
 
 **Output:** An XLSX report named `<log_file>_report.xlsx` (e.g., `shmoo.txt_report.xlsx`).  
@@ -123,7 +123,7 @@ When the shmoo log contains multiple test sites, the `--gap` option arranges res
 Generate a site-to-site comparison and overlay report from multiple CHAR log files.
 
 ```bash
-python shm_cli.py correlate --files <FILE1> <FILE2> ... --config <CONFIG_FILE> [OPTIONS]
+shm-detect correlate --files <FILE1> <FILE2> ... --config <CONFIG_FILE> [OPTIONS]
 ```
 
 | Option | Default | Description |
@@ -137,13 +137,13 @@ python shm_cli.py correlate --files <FILE1> <FILE2> ... --config <CONFIG_FILE> [
 
 ```bash
 # Compare two log files (all sites)
-python shm_cli.py correlate --files file1.txt file2.txt --config SHM_keywords_setting.json
+shm-detect correlate --files file1.txt file2.txt --config SHM_keywords_setting.json
 
 # Specify which sites to compare
-python shm_cli.py correlate --files file1.txt file2.txt --config config.json --sites "0,1;0,2"
+shm-detect correlate --files file1.txt file2.txt --config config.json --sites "0,1;0,2"
 
 # Custom column gap
-python shm_cli.py correlate --files f1.txt f2.txt f3.txt --config config.json --gap 30
+shm-detect correlate --files f1.txt f2.txt f3.txt --config config.json --gap 30
 ```
 
 **Output:** A correlation XLSX report with site-by-site comparison.
@@ -202,7 +202,7 @@ The JSON config file defines how to parse the shmoo log. Both `analyse` and `cor
 
 ```
 1. Prepare config     →  Create or select a JSON config file matching your log format
-2. Analyse shmoo      →  python shm_cli.py analyse --log shmoo.txt --config config.json
+2. Analyse shmoo      →  shm-detect analyse --log shmoo.txt --config config.json
 3. Review report      →  Open the generated _report.xlsx in Excel
-4. (Optional) Compare →  python shm_cli.py correlate --files f1.txt f2.txt --config config.json
+4. (Optional) Compare →  shm-detect correlate --files f1.txt f2.txt --config config.json
 ```

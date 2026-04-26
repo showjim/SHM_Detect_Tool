@@ -1,0 +1,16 @@
+# Include necessary data files
+recursive-include shm_detect_tool *.json *.pth
+
+# Include plain Python entry points
+include shm_detect_tool/__init__.py
+include shm_detect_tool/cli.py
+
+# Exclude Cython generated .c files
+global-exclude *.c
+
+# Exclude all other .py files (since they are compiled to .so/.pyd)
+recursive-exclude shm_detect_tool *.py
+
+# Re-include the two entry point Python files since recursive-exclude might override
+include shm_detect_tool/__init__.py
+include shm_detect_tool/cli.py
