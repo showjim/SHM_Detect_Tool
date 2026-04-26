@@ -17,12 +17,13 @@ import qtawesome as qta
 from shm_detect_tool import backend as shm_backend
 from importlib.metadata import version as _pkg_version
 
+
 def _get_version():
     try:
         return f"SHM Detect Tool Beta V{_pkg_version('shm-detect-tool')}"
     except Exception:
-        # Fallback for local run without installation
-        return "SHM Detect Tool Beta V0.8.0"
+        return "SHM Detect Tool Beta V0.0.0"
+
 
 __version__ = _get_version()
 __author__ = 'zhouchao486@gmail.com'

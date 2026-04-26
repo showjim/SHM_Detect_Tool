@@ -3,9 +3,9 @@
 SHM Detect Tool — Command Line Interface
 
 Usage:
-    python shm_cli.py train    --dataset custom_SHM_data.csv --output state_dict.pth
-    python shm_cli.py analyse  --log shmoo.txt --config config.json
-    python shm_cli.py correlate --files f1.txt f2.txt --config config.json
+    shm-detect train    --dataset custom_SHM_data.csv --output state_dict.pth
+    shm-detect analyse  --log shmoo.txt --config config.json
+    shm-detect correlate --files f1.txt f2.txt --config config.json
 """
 
 import argparse
@@ -26,7 +26,7 @@ def _get_version():
     try:
         return _pkg_version("shm-detect-tool")
     except Exception:
-        return "0.8.0"
+        return "0.0.0"
 
 
 def cmd_train(args):
@@ -84,7 +84,7 @@ def cmd_correlate(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='shm-cli',
+        prog='shm-detect',
         description='SHM Detect Tool — Shmoo log analysis CLI',
     )
     parser.add_argument("--version", "-V", action="version",

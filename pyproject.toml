@@ -39,7 +39,7 @@ webapp = ["streamlit>=1.38.0"]
 dev = ["pytest", "build", "twine"]
 
 [project.scripts]
-shm-cli = "shm_detect_tool.cli:main"
+shm-detect = "shm_detect_tool.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

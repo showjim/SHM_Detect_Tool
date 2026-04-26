@@ -17,3 +17,5 @@ dist/
 
 # macOS
 .DS_Store
+*.xlsx
+Shmoo_detect_project/*
