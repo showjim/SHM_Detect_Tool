@@ -18,6 +18,7 @@
   - [CLI Usage](#cli-usage)
   - [GUI Usage](#gui-usage)
   - [Web App Usage](#web-app-usage)
+- [JSON Configuration](#json-configuration)
 - [Screenshots](#screenshots)
 - [License](#license)
 
@@ -129,6 +130,39 @@ Launch the Streamlit-based web interface:
 ```bash
 streamlit run SHM_Detect_Tool_webapp.py
 ```
+
+---
+
+## JSON Configuration
+
+The tool uses a JSON config file to define parsing rules for different shmoo log formats (CHAR Studio, customised, etc.). Each format has unique keywords for identifying site info, test items, axis boundaries, and pass/fail symbols.
+
+### Config Fields
+
+| Field | Description |
+|-------|-------------|
+| `keyword_site` | Keyword that identifies site information lines in the log |
+| `keyword_item` | Keyword that identifies test instance or item lines |
+| `keyword_start` | Keyword marking the Y-axis label start (shmoo body begins after this line) |
+| `keyword_end` | Keyword marking the X-axis end boundary |
+| `keyword_pass` | Regex pattern matching pass symbols (e.g., `P`, `*`, `+`) |
+| `keyword_fail` | Regex pattern matching fail symbols (e.g., `.`, `#`, `-`, `E`) |
+| `keyword_y_axis_pos` | Y-axis label position: `"left"` (customised) or `"right"` (CHAR Studio) |
+
+The package ships with a default CHAR Studio config:
+```json
+{
+  "keyword_site": "Site",
+  "keyword_item": "<",
+  "keyword_start": "Tcoef(AC Spec)",
+  "keyword_end": "X Axis: Vcoef(DC Spec)",
+  "keyword_pass": "\\+",
+  "keyword_fail": "-|E",
+  "keyword_y_axis_pos": "right"
+}
+```
+
+See [doc/CLI_USAGE.md](doc/CLI_USAGE.md) for complete examples, regex notes, and format-specific details.
 
 ---
 
