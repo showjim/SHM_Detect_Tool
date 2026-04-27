@@ -32,7 +32,7 @@ It provides three subcommands for shmoo log analysis workflows:
 shm-detect --help
 
 # Analyse a shmoo log (most common use case)
-shm-detect analyse --log shmoo.txt --config SHM_keywords_setting.json
+shm-detect analyse --file shmoo.txt --config SHM_keywords_setting.json
 
 # Train a new model
 shm-detect train --dataset custom_SHM_data.csv
@@ -83,12 +83,12 @@ shm-detect train --dataset my_data.csv --epochs 100 --lr 0.001 --batch-size 64
 Parse a shmoo log file (`.txt`) with a JSON config, run CNN inference, and generate an XLSX report with pass/fail highlighting.
 
 ```bash
-shm-detect analyse --log <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
+shm-detect analyse --file <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--log` | *(required)* | Path to the shmoo log file (`.txt`) |
+| `--file` | *(required)* | Path to the shmoo log file (`.txt`) |
 | `--config` | *(required)* | Path to JSON config file |
 | `--model` | `./state_dict.pth` | Path to the trained model weights |
 | `--gap` | `Disable` | Parallel plot column gap: `Disable`, `15`, or `25` |
@@ -97,13 +97,13 @@ shm-detect analyse --log <LOG_FILE> --config <CONFIG_FILE> [OPTIONS]
 
 ```bash
 # Basic analysis
-shm-detect analyse --log sample/S2S_Shmoo_site0.txt --config SHM_keywords_setting.json
+shm-detect analyse --file sample/S2S_Shmoo_site0.txt --config SHM_keywords_setting.json
 
 # Use a custom model
-shm-detect analyse --log shmoo.txt --config config.json --model custom_model.pth
+shm-detect analyse --file shmoo.txt --config config.json --model custom_model.pth
 
 # Enable parallel plot (multi-site side-by-side with 25-column gap)
-shm-detect analyse --log shmoo.txt --config config.json --gap 25
+shm-detect analyse --file shmoo.txt --config config.json --gap 25
 ```
 
 **Output:** An XLSX report named `<log_file>_report.xlsx` (e.g., `shmoo.txt_report.xlsx`).  
@@ -202,7 +202,7 @@ The JSON config file defines how to parse the shmoo log. Both `analyse` and `cor
 
 ```
 1. Prepare config     →  Create or select a JSON config file matching your log format
-2. Analyse shmoo      →  shm-detect analyse --log shmoo.txt --config config.json
+2. Analyse shmoo      →  shm-detect analyse --file shmoo.txt --config config.json
 3. Review report      →  Open the generated _report.xlsx in Excel
 4. (Optional) Compare →  shm-detect correlate --files f1.txt f2.txt --config config.json
 ```

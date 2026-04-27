@@ -4,7 +4,7 @@ SHM Detect Tool — Command Line Interface
 
 Usage:
     shm-detect train    --dataset custom_SHM_data.csv --output state_dict.pth
-    shm-detect analyse  --log shmoo.txt --config config.json
+    shm-detect analyse  --file shmoo.txt --config config.json
     shm-detect correlate --files f1.txt f2.txt --config config.json
 """
 
@@ -62,7 +62,7 @@ def cmd_analyse(args):
         print(f"Error: invalid JSON in config file — {e}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Analysing shmoo log: {args.log}")
+    print(f"Analysing shmoo log: {args.file}")
     print(f"Using config: {args.config}")
     print(f"Using model: {args.model}")
     if args.gap != 'Disable':
@@ -70,7 +70,7 @@ def cmd_analyse(args):
 
     try:
         report_path = shm_backend.analyse_shmoo(
-            log_path=args.log,
+            log_path=args.file,
             config=config,
             model_path=args.model,
             parallel_gap=args.gap,
@@ -140,7 +140,7 @@ def main():
 
     # --- analyse ---
     p_analyse = subparsers.add_parser('analyse', help='Analyse shmoo log and generate XLSX report')
-    p_analyse.add_argument('--log', required=True,
+    p_analyse.add_argument('--file', required=True,
                            help='Path to shmoo log file (.txt)')
     p_analyse.add_argument('--config', default=DEFAULT_CONFIG,
                            help='Path to JSON config file (default: bundled S2S config)')

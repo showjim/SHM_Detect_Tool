@@ -95,7 +95,7 @@ pip install -e .[gui,webapp]
 
 ```bash
 # Analyse a shmoo log and generate an XLSX report
-shm-detect analyse --log shmoo.txt --config SHM_keywords_setting.json
+shm-detect analyse --file shmoo.txt --config SHM_keywords_setting.json
 
 # Train a new CNN model
 shm-detect train --dataset custom_SHM_data.csv
