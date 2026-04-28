@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shm-detect-tool"
-version = "0.8.5"
+version = "0.8.6"
 description = "Shmoo log analysis tool based on PyTorch CNN"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
@@ -32,6 +32,7 @@ dependencies = [
     "pandas>=1.3.0",
     "XlsxWriter>=3.1.9",
     "openpyxl>=3.1.2",
+    "matplotlib>=3.8.4"
 ]
 
 [project.optional-dependencies]
