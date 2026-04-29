@@ -154,7 +154,7 @@ shm-detect correlate --files f1.txt f2.txt f3.txt --config config.json --gap 30
 
 The JSON config file defines how to parse the shmoo log. Both `analyse` and `correlate` commands require this file.
 
-### Example: S2S Format (Left Y-Axis)
+### Example: a user-defined Format (Left Y-Axis)
 
 ```json
 {
@@ -168,7 +168,7 @@ The JSON config file defines how to parse the shmoo log. Both `analyse` and `cor
 }
 ```
 
-### Example: CHAR Studio Format (Right Y-Axis)
+### Example: Teradyne CZ Studio Enhenced Format (Right Y-Axis)
 
 ```json
 {
